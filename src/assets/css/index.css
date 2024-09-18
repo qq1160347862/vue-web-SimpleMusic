@@ -1,0 +1,30 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style: none;
+    text-decoration: none;
+    font-family: "Microsoft YaHei", sans-serif;
+
+    --border-radius-light: 8px;
+    --sizebar-width: 224px;
+    --left-screen-padding: 1rem;
+    --logo-icon-size: 32px;
+    --logo-text-size: 1.8em;
+
+
+    --aside-menu1-func-col-n: 2;
+    --aside-menu1-func-gap: calc((100% - 48px * var(--aside-menu1-func-col-n)) / var(--aside-menu1-func-col-n) / 2);
+}
+
+a {
+    color:inherit;
+}
+
+
+.no-select {
+    user-select: none; /* 对现代浏览器有效 */
+    -webkit-user-select: none; /* 对 Safari 兼容 */
+    -moz-user-select: none; /* 对 Firefox 兼容 */
+    -ms-user-select: none; /* 对 IE 兼容 */
+}
