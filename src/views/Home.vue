@@ -9,7 +9,7 @@
                 leaveClass: 'show-scrollbar',
             }">
             <div class="left-content">
-                <div class="welcome-warp">
+                <div class="welcome-warp no-select">
                     <div class="welcome-content">
                         <p class="welcome-text">Hi!🥳</p>
                         <p class="welcome-text">I'm <span class="Web-Developer-Name">Yulily.</span></p>

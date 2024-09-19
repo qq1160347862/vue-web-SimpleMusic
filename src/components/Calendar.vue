@@ -1,5 +1,5 @@
 <template> 
-    <div class="calendar-container" ref="container">
+    <div class="calendar-container no-select" ref="container">
         <div class="calendar-header">
             <div class="bg-mask"></div>
             <div class="bg-area" ref="bgArea">

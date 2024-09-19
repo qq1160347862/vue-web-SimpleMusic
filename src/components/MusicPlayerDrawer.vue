@@ -42,7 +42,16 @@
                           <MusicList></MusicList>
                         </div>
                         <div class="comment-warp">
-                          321
+                          <comment 
+                            v-if="showComment"
+                            :id="musicList[currentIndex]?.id"
+                            :type="0"
+                            :sortType="trackSortType"
+                            :comments="trackComments"
+                            :getSubComments="localStore.getFloorCommentsData"
+                            :likeComment="localStore.handleLikeComment"
+                            :handleComment="localStore.handleComment"
+                            @switchSortType="switchSortType"></comment>
                         </div>  
                       </div>                                              
                     </div>
@@ -102,7 +111,8 @@
 import Slider from './Slider.vue';
 import SwitchBtn from './SwitchBtn.vue';
 import MusicList from './MusicList.vue';
-import { computed, onBeforeUnmount, onMounted, ref, inject } from 'vue';
+const comment = defineAsyncComponent(() => import('./comment.vue'));
+import { computed, onBeforeUnmount, onMounted, ref, inject, defineAsyncComponent } from 'vue';
 import { useLocalStore } from '@/store/localStore';
 import { storeToRefs } from 'pinia';
 import useAudioVisualizer from '@/hooks/useAudioVisualizer';
@@ -111,11 +121,25 @@ const props = defineProps({
 })
 const audioVisualizer = useAudioVisualizer()
 const localStore = useLocalStore()
-const { localPlayer, musicList, currentIndex, isPlaying, volume, loop, currentTime, duration, progress, isDragging } = storeToRefs(localStore)
+const { 
+  localPlayer, 
+  musicList, 
+  currentIndex, 
+  isPlaying, 
+  volume, 
+  loop, 
+  currentTime, 
+  duration, 
+  progress, 
+  isDragging, 
+  trackSortType,
+  trackComments,
+} = storeToRefs(localStore)
 const message = inject('message')
 const isMuted = computed(() => volume.value === 0)
 const lastVolume = ref(volume.value)
 const showFunc = ref(0)
+const showComment = ref(false)
 const switchBtnOptions = ref([
     {
         id:'lyric',
@@ -212,6 +236,8 @@ const handleSwitchBtnClick = (value) => {
       doms.playlist.classList.remove('active')
       doms.comment.classList.add('active')
       doms.layout.style.transform = `translateX(-${offset * value}px)`
+      showComment.value = true
+      loadComments()
       break;
     default:
       break;
@@ -246,7 +272,6 @@ const updateLyric = () => {
   let maxOffset = lyricDoms.ul.clientHeight - lyricDoms.container.clientHeight  // 歌词滚动区域的最大偏移量
   let minOffset = lyricDoms.container.clientHeight/2 // 歌词滚动区域的最小偏移量
   let offset = liHeight * lyricIndex + liHeight/2 - lyricDoms.container.clientHeight/2    // 歌词滚动区域的偏移量
-  console.log(offset,minOffset);
   // if(offset < 0) {
   //   offset = 0
   // }
@@ -267,6 +292,23 @@ const updateLyric = () => {
       // curLi.className = 'active'
       curLi.classList.add('active') 
   }   
+}
+// 切换评论排序方式
+const switchSortType = async (type) => {
+  trackSortType.value = type
+  await loadComments()
+}
+// 加载评论
+const loadComments = async () => {
+  const id = musicList.value[currentIndex.value].id
+  const params = {
+    id: id, 
+    type: 0, 
+    sortType: trackSortType.value, 
+    pageSize: 20, 
+    pageNo: 1, 
+  }
+  await localStore.getCommentsData(params)
 }
 
 onMounted(() => {
@@ -477,11 +519,13 @@ onBeforeUnmount(() => {
   transform: scale(1.4);
 }
 
-.playlist-warp {
+.playlist-warp,
+.comment-warp {
   background-color: #e6e6e65e;
   border-top-left-radius: var(--border-radius-light);
   border-bottom-left-radius: var(--border-radius-light);
 }
+
 
 
 

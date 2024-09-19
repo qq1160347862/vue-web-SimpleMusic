@@ -1,8 +1,16 @@
 import { defineStore } from "pinia";
+import { setActivePinia, createPinia } from 'pinia';
+import { useUserStore } from "./userStore";
+import { storeToRefs } from 'pinia';
 import { ref, shallowRef, toRefs } from "vue";
 import { getSongUrl, getLyric} from '@/request/musicApi/songs'
+import { getComments, getFloorComments, operateComment, likeComment } from "@/request/musicApi/comment";
 import useLyricParse from "../hooks/useLyricParse";
 const useLyric = useLyricParse()
+// 通过使用setActivePinia来激活Pinia仓库，因为pinia的创建是在app.mount之后的
+setActivePinia(createPinia())
+const userStore = useUserStore()
+const { isLogin, cookie } = storeToRefs(userStore)
 
 export const useLocalStore = defineStore("local", () => {
     const localPlayer = ref(null);
@@ -15,7 +23,6 @@ export const useLocalStore = defineStore("local", () => {
     const duration = ref(0);
     const progress = ref(0);
     const isDragging = ref(false)
-
     // [{
     //     id: null,
     //     detail: null,
@@ -23,6 +30,10 @@ export const useLocalStore = defineStore("local", () => {
     // }]
     const albumCaches = shallowRef([]);
     const maxCacheCount = ref(2);
+
+    const total = ref(0)
+    const trackComments = ref([])    
+    const trackSortType = ref(1)
 
 
     // 音乐列表覆盖
@@ -40,6 +51,8 @@ export const useLocalStore = defineStore("local", () => {
     // 添加音乐至列表末尾(播放)
     const pushMusicToList = async (track) => {
 
+        isPlaying.value = true
+        trackComments.value = []        
         const index = musicList.value.findIndex((item) => {
             return item.id === track.id
         })
@@ -52,7 +65,13 @@ export const useLocalStore = defineStore("local", () => {
             track.lyric = lyric
             musicList.value.push(track)
             currentIndex.value = musicList.value.length - 1
-            isPlaying.value = true
+            await getCommentsData({
+                id: musicList.value[currentIndex.value].id, 
+                type: 0, 
+                sortType: trackSortType.value, 
+                pageSize: 20, 
+                pageNo: 1, 
+            })
             return
         }
 
@@ -69,8 +88,13 @@ export const useLocalStore = defineStore("local", () => {
         }
         
         currentIndex.value = index
-        isPlaying.value = true        
-        
+        await getCommentsData({
+            id: musicList.value[currentIndex.value].id, 
+            type: 0, 
+            sortType: trackSortType.value, 
+            pageSize: 20, 
+            pageNo: 1, 
+        })                      
         console.log('歌曲已存在，切换至已存在的歌曲',currentIndex.value); 
         return
     }
@@ -120,24 +144,36 @@ export const useLocalStore = defineStore("local", () => {
             return msg;
         }
 
+        const oldIndex = currentIndex.value
         // 更新当前索引
         switch (loop.value) {
             case 0:
-                player.value.currentTime = 0; // 重置播放时间
+                localPlayer.value.currentTime = 0; // 重置播放时间
+                localPlayer.value.play()
                 break;
-            case 1:
-                currentIndex.value = (currentIndex.value + step + musicList.value.length) % musicList.value.length; // 顺序播放
+            case 1:       
+            currentIndex.value = (currentIndex.value + step + musicList.value.length) % musicList.value.length; // 顺序播放         
+                if(oldIndex === currentIndex.value) {
+                    localPlayer.value.currentTime = 0; // 重置播放时间
+                    localPlayer.value.play()
+                    return;
+                }                
+                pushMusicToList(musicList.value[currentIndex.value]) 
                 break;
             case 2:
                 currentIndex.value = Math.floor(Math.random() * musicList.value.length); // 随机播放
+                if(oldIndex === currentIndex.value) {
+                    localPlayer.value.currentTime = 0; // 重置播放时间
+                    localPlayer.value.play()
+                    return;
+                }
+                pushMusicToList(musicList.value[currentIndex.value]) 
                 break;
             default:
                 console.error("无效的播放模式。");
                 return;
         }
-
-        // 重新播放
-        pushMusicToList(musicList.value[currentIndex.value])  
+         
     }
 
     // 获取音乐Url
@@ -157,14 +193,88 @@ export const useLocalStore = defineStore("local", () => {
         try {
             const res = await getLyric(id)
             const lyric = useLyric(res.data.lrc.lyric)
-            console.log(lyric);
-            
             return lyric
         }catch(err) {
             console.log('获取音乐歌词失败',err)
         }        
     }
     
+    // 获取评论数据
+    const getCommentsData = async ({id, type, sortType, pageSize, pageNo, cursor}) => {
+        try {                                    
+            switch(type){
+                case 0:                    
+                    if(trackComments.value[trackSortType.value] && trackComments.value[0] === id) {
+                        break;
+                    }
+                    const res = await getComments(id, type, sortType, pageSize, pageNo, cursor)
+                    if(res.data.code !== 200){
+                        throw new Error('获取评论失败',res.data.msg)
+                    }                
+                    trackComments.value[0] = id
+                    trackComments.value[trackSortType.value] = res.data.data.comments
+                    total.value = res.data.data.totalCount 
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                default:
+                    console.error('无效的评论类型')
+                    break;
+            }                       
+            
+        } catch (error) {
+            throw error
+        }
+    }
+
+    // 获取楼中楼评论数据
+    const getFloorCommentsData = async ({id, type, parentCommentId, limit, time}) => {
+        try {
+            const res = await getFloorComments(id, type, parentCommentId, limit, time)
+            if(res.data.code !== 200){
+                throw new Error('获取子评论失败',res.data.msg)
+            }
+            return res.data.data
+        } catch (error) {            
+            console.log('Error:',error)
+        }
+    }
+
+    // 删除/发送/回复评论
+    const handleComment = async ({id, type, commentId, t, content}) => {
+        try {
+            if(!isLogin.value || !cookie.value) {
+                return Promise.reject('请先登录')
+            }
+            const res = await operateComment(id, type, commentId, t, content, cookie.value)
+            
+            if(res.data.code !== 200){
+                throw new Error('操作评论失败',res.data.msg)
+            }
+            return res.data.comment
+        }catch(err) {
+            console.log('操作评论失败',err)
+        }
+    }
+
+    // 点赞评论
+    const handleLikeComment = async ({id, type, commentId, t}) => {
+        try {
+            if(!isLogin.value || !cookie.value) {
+                return Promise.reject('请先登录')
+            }
+            const res = await likeComment(id, type, commentId, t, cookie.value)
+            if(res.data.code !== 200){
+                throw new Error('点赞评论失败',res.data.msg)
+            }
+            return true
+        }catch(err) {
+            console.log('点赞评论失败',err)
+        }
+    }
+
     return { 
         localPlayer,
         musicList, 
@@ -178,10 +288,18 @@ export const useLocalStore = defineStore("local", () => {
         isDragging,
         albumCaches, 
         maxCacheCount, 
+        trackSortType,
+        trackComments,
+        total,
         getTrackUrl, 
         getTrackLyric, 
         setMusicList, 
         pushMusicToList,
         nextMusic,
-        switchMusic }
+        switchMusic,
+        getCommentsData,
+        getFloorCommentsData,
+        handleComment,
+        handleLikeComment
+     }
 })

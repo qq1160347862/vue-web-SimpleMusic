@@ -16,8 +16,8 @@
                         <div class="song-infos">
                             <p class="song-name">{{ song?.name }}</p>
                             <p class="song-author">{{ song?.ar.map(item => item.name).join('/') }}</p>
-                        </div>    
-                        <i class="iconfont icon-playing" v-if="currentIndex === index"></i>                   
+                        </div> 
+                        <Loading1 v-if="currentIndex === index" class="loading-warp"></Loading1>                  
                     </li>
                 </TransitionGroup>
             </ul>        
@@ -25,6 +25,7 @@
 </template>
 
 <script setup>
+import Loading1 from './Loading1.vue';
 import { useLocalStore } from '../store/localStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue'
@@ -68,10 +69,9 @@ const handleClick = (song) => {
     cursor: pointer;
     transition: all 0.2s linear;
 }
-.music-list .music-item>.iconfont {
+.music-list .music-item>.loading-warp {
     margin-left: auto;
     margin-right: 16px;
-    color: red;
 }
 .music-list .music-item:hover {
     background: #ffffff;
