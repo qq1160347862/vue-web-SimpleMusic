@@ -16,7 +16,7 @@
             </div>
             <div class="user-warp" v-if="isLogin">
                 <div class="user-avator"
-                    :style="{backgroundImage: `url(${avator})`}">
+                    :style="{backgroundImage: `url(${userInfo?.profile.avatarUrl})`}">
                 </div> 
                 <div class="user-info" v-if="userInfo?.profile">
                     <p class="user-name">{{ userInfo?.profile.nickname }}</p>
@@ -54,8 +54,7 @@ import { useRouter } from 'vue-router';
 import Input from './Input.vue';
 import Dialog from '../components/Dialog.vue';
 import useNumberToTenThousand from '../hooks/useNumberToTenThousand'
-import avator from '../assets/images/user/user-avator.jpg'
-import qrImg from '../assets/images/user/qrImg.png'
+import qrImg from '../assets/images/user/avatar-default.png'
 import { useUserStore } from '@/store/userStore'
 import { storeToRefs } from 'pinia';
 

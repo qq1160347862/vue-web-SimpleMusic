@@ -46,6 +46,13 @@ export const useLocalStore = defineStore("local", () => {
         list[0].url = url
         list[0].lyric = lyric
         isPlaying.value = true
+        await getCommentsData({
+            id: musicList.value[currentIndex.value].id, 
+            type: 0, 
+            sortType: trackSortType.value, 
+            pageSize: 20, 
+            pageNo: 1, 
+        })    
     }
 
     // 添加音乐至列表末尾(播放)
@@ -101,37 +108,35 @@ export const useLocalStore = defineStore("local", () => {
 
     // 添加音乐至列表末尾(下一首播放)
     const nextMusic = async (track) => {
-        
-        const index = musicList.value.findIndex((item) => {
-            return item.id === track.id
-        })
-        
-        if (index === -1) {
-            // 歌曲不存在，添加至当前歌曲的下一首
-            const url = await getTrackUrl(track.id)
-            const lyric = await getTrackLyric(track.id)            
-            track.url = url
-            track.lyric = lyric
-            musicList.value.splice(currentIndex.value + 1, 0, track)   
-            console.log('歌曲不存在，添加至当前歌曲的下一首');          
-            return
-        }
 
-        // 歌曲已存在，调整位置   
-        const target = musicList.value[index]   // 获得目标歌曲
-        if (index === currentIndex.value) return // 目标歌曲为当前歌曲，不做任何操作
-        if (index < currentIndex.value) {
-            // 目标歌曲在当前歌曲之前，插入到当前歌曲之后
-            musicList.value.splice(index,1)
-            musicList.value.splice(currentIndex.value + 1, 0, target)
-            currentIndex.value--
-        } else {
-            // 目标歌曲在当前歌曲之后，插入到当前歌曲之后
-            musicList.value.splice(index,1)
-            musicList.value.splice(currentIndex.value + 1, 0, target)
-        }        
-        console.log('歌曲已存在，将在播放完当前歌曲后播放'); 
-        return
+        const index = musicList.value.findIndex(item => item.id === track.id);     
+        try {
+            if (index === -1) {
+                // 歌曲不存在，添加至当前歌曲的下一首
+                const url = await getTrackUrl(track.id);
+                const lyric = await getTrackLyric(track.id);
+                track.url = url;
+                track.lyric = lyric;
+                musicList.value.splice(currentIndex.value + 1, 0, track);
+                console.log('歌曲不存在，添加至当前歌曲的下一首');
+            } else {
+                // 歌曲已存在，调整位置
+                const target = musicList.value[index]; // 获得目标歌曲
+                if (index !== currentIndex.value) { // 目标歌曲不为当前歌曲
+                    if(index < currentIndex.value) {
+                        musicList.value.splice(index, 1); // 删除目标歌曲
+                        musicList.value.splice(currentIndex.value, 0, target); // 插入至当前歌曲前
+                        console.log('歌曲已存在，将在播放完当前歌曲后播放');
+                        return;
+                    }
+                    musicList.value.splice(index, 1); // 删除目标歌曲
+                    musicList.value.splice(currentIndex.value + 1, 0, target); // 插入至当前歌曲后
+                    console.log('歌曲已存在，将在播放完当前歌曲后播放');
+                }
+            }
+        } catch (err) {
+            console.log('处理歌曲失败', err);
+        }
     }
 
     // 切换音乐(下一首/上一首)
@@ -204,6 +209,7 @@ export const useLocalStore = defineStore("local", () => {
         try {                                    
             switch(type){
                 case 0:                    
+                    // 当前分类停留在trackSortType且是当前歌曲的评论，则不请求数据
                     if(trackComments.value[trackSortType.value] && trackComments.value[0] === id) {
                         break;
                     }
@@ -213,6 +219,35 @@ export const useLocalStore = defineStore("local", () => {
                     }                
                     trackComments.value[0] = id
                     trackComments.value[trackSortType.value] = res.data.data.comments
+                    
+                    total.value = res.data.data.totalCount 
+                    break;
+                case 1:
+                    break;
+                case 2:
+                    break;
+                default:
+                    console.error('无效的评论类型')
+                    break;
+            }                       
+            
+        } catch (error) {
+            throw error
+        }
+    }
+
+    // 获取更多评论
+    const getMoreComments = async ({type, sortType, pageSize, pageNo, cursor}) => {
+        try {                                    
+            switch(type){
+                case 0:          
+                    // 如果后台且歌了，保证id为指定歌曲的评论
+                    const id = trackComments.value[0]                      
+                    const res = await getComments(id, type, sortType, pageSize, pageNo, cursor)
+                    if(res.data.code !== 200){
+                        throw new Error('获取评论失败',res.data.msg)
+                    }               
+                    trackComments.value[trackSortType.value].push(...res.data.data.comments)
                     total.value = res.data.data.totalCount 
                     break;
                 case 1:
@@ -253,7 +288,7 @@ export const useLocalStore = defineStore("local", () => {
             if(res.data.code !== 200){
                 throw new Error('操作评论失败',res.data.msg)
             }
-            return res.data.comment
+            return res.data.comment? res.data.comment : true
         }catch(err) {
             console.log('操作评论失败',err)
         }
@@ -298,6 +333,7 @@ export const useLocalStore = defineStore("local", () => {
         nextMusic,
         switchMusic,
         getCommentsData,
+        getMoreComments,
         getFloorCommentsData,
         handleComment,
         handleLikeComment

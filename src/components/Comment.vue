@@ -13,39 +13,47 @@
                 <input @click="handleRadio" type="radio" id="new" value="3" name="comment-type">
                 <label for="new">最新</label>                
             </div>
-            <TransitionGroup name="comment-list" tag="ul" class="comment-scollPanel">
-                <li class="comment-item" @click="handleReplyPanel(comment)"
-                    v-for="(comment, index) in comments[sortType]" :key="index">
-                    <div class="comment-item-content">
-                        <div class="comment-item-avatar no-select"> 
-                            <img :src="comment.user.avatarUrl" loading="lazy" alt="user-avatar">
+            <Transition name="comment-list">
+                <ul class="comment-scollPanel" v-show="comments[sortType]">
+                    <li class="comment-item" @click="handleReplyPanel(comment)"
+                        v-for="(comment, index) in comments[sortType]" :key="index">
+                        <div class="comment-item-content">
+                            <div class="comment-item-avatar no-select"> 
+                                <img :src="comment.user.avatarUrl"  alt="user-avatar">
+                            </div>
+                            <div class="comment-item-info">
+                                <p class="top">
+                                    <span class="name">{{ comment.user.nickname }}</span>
+                                    <span class="like" 
+                                        @click.stop="handleLikeComment(comment)">
+                                        {{ comment.likedCount }}
+                                        <i v-show="!comment.liked" class="iconfont icon-like"></i>
+                                        <i v-show="comment.liked" class="iconfont icon-like-fill"></i>
+                                    </span>
+                                    <span class="delete" v-if="uid === comment.user.userId">
+                                        <i @click.stop="deleteComment(comment)" class="iconfont icon-shanchu"></i>
+                                    </span>                            
+                                </p>
+                                <p class="center">
+                                    {{ comment.content }}
+                                </p>
+                                <p class="bottom">
+                                    <span class="create-time">{{ comment.timeStr }}</span>
+                                    <span class="more-reply no-select" v-show="+comment.replyCount > 0" 
+                                        @click.stop="handleShowSubComment(comment.commentId)">
+                                        {{ `${comment.replyCount}条回复` }}
+                                        <i class="iconfont icon-right"></i>
+                                    </span>
+                                </p>
+                            </div>
                         </div>
-                        <div class="comment-item-info">
-                            <p class="top">
-                                <span class="name">{{ comment.user.nickname }}</span>
-                                <span class="like" 
-                                    @click.stop="handleLikeComment(comment)">
-                                    {{ comment.likedCount }}
-                                    <i v-show="!comment.liked" class="iconfont icon-like"></i>
-                                    <i v-show="comment.liked" class="iconfont icon-like-fill"></i>
-                                </span>                            
-                            </p>
-                            <p class="center">
-                                {{ comment.content }}
-                            </p>
-                            <p class="bottom">
-                                <span class="create-time">{{ comment.timeStr }}</span>
-                                <span class="more-reply no-select" v-show="+comment.replyCount > 0" 
-                                    @click.stop="handleShowSubComment(comment.commentId)">
-                                    {{ `${comment.replyCount}条回复` }}
-                                    <i class="iconfont icon-right"></i>
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                </li>
-            </TransitionGroup>
-            <form @submit.stop.prevent="handleSubmit(1)" class="replay-warp" v-show="showReplyPanel">
+                    </li>
+                </ul>                
+            </Transition>
+            <div class="ring" v-show="comments[sortType]"></div>
+            <form v-if="isLogin"
+                @submit.stop.prevent="handleSubmit(1)" 
+                class="replay-warp" v-show="showReplyPanel">
                 <input v-model="inputContent" placeholder="回车发送评论"></input>
             </form>            
         </div>
@@ -63,11 +71,14 @@
                 <div class="owner-infos">
                     <p class="top">
                         <span class="name">{{ subComments?.ownerComment.user.nickname }}</span>
-                        <span class="like" @click.stop="handleLikeComment(subComments?.ownerComment)">
+                        <!-- <span class="like" @click.stop="handleLikeComment(subComments?.ownerComment)">
                             {{ subComments?.ownerComment.likedCount }}
                             <i v-show="!subComments?.ownerComment.liked" class="iconfont icon-like"></i>
                             <i v-show="subComments?.ownerComment.liked" class="iconfont icon-like-fill"></i>
-                        </span>
+                        </span> -->
+                        <span class="delete" v-if="uid === subComments?.ownerComment.user.userId">
+                            <i @click.stop="deleteComment(subComments?.ownerComment)" class="iconfont icon-shanchu"></i>
+                        </span> 
                     </p>
                     <p class="center">
                         {{ subComments?.ownerComment.content }}
@@ -98,6 +109,9 @@
                                     <i v-show="!subComment?.liked" class="iconfont icon-like"></i>
                                     <i v-show="subComment?.liked" class="iconfont icon-like-fill"></i>
                                 </span>
+                                <span class="delete" v-if="uid === subComment?.user.userId">
+                                    <i @click.stop="deleteComment(subComment)" class="iconfont icon-shanchu"></i>
+                                </span> 
                             </p>
                             <p class="center">{{ subComment?.content }}</p>
                             <p class="bottom">
@@ -121,7 +135,7 @@
         </div>
     </Transition>
     <Teleport to="body">
-        <dialog id="inputPanel">
+        <dialog id="inputPanel" v-if="isLogin">
             <div class="input-panel">
                 <div class="input-warp">
                     <h2>评论</h2>
@@ -139,8 +153,17 @@
 </template>
 
 <script setup>
-import { onMounted, onUpdated, onBeforeUpdate, ref, inject } from 'vue';
+import { onMounted, onUpdated, onBeforeUpdate, ref, inject, onUnmounted, watch } from 'vue';
+import useDebounce from '@/hooks/useDebounce';
 const props = defineProps({
+    isLogin: {
+        type: Boolean,
+        required: true
+    },
+    uid: {
+        type: Number,
+        required: true
+    },
     id: {
         type: Number,
         required: true
@@ -170,7 +193,7 @@ const props = defineProps({
         required: true
     }
 })
-const emit = defineEmits(['switchSortType'])
+const emit = defineEmits(['switchSortType', 'loadComments'])
 const message = inject('message')
 const showSubComment = ref(false)
 const subComments = ref(null)
@@ -180,6 +203,7 @@ const oldId = ref(null)
 const currentCId = ref(null)
 const currentC = ref(null)
 const floorCid = ref(null)
+const scrollHeight = ref([])
 const handleShowSubComment = async (commentId) => {
     showSubComment.value = true
     subComments.value = await props.getSubComments({
@@ -188,12 +212,24 @@ const handleShowSubComment = async (commentId) => {
         parentCommentId: commentId
     })
     floorCid.value = commentId
-    
 }
+watch(() => props.sortType, (newVal, oldVal) => {
+    const scrollDom = document.querySelector('.comment-container')
+    scrollHeight.value[oldVal] = scrollDom.scrollTop
+    if(scrollHeight.value[newVal] === undefined) {  // 没记录高度，则不滚动
+        return
+    }
+    scrollDom.scrollTo(0, scrollHeight.value[newVal],{
+        behaviour: 'smooth'
+    })  
+})
 const handleRadio = (e) => {
-    emit('switchSortType', +e.target.value)  
+    emit('switchSortType', +e.target.value)        
 }
 const handleReplyPanel = async (comment) => {
+    if (!props.isLogin){
+        return
+    }
     showReplyPanel.value = false
     oldId.value = props.id  // 记录旧的id,避免切换资源时，组件刷新，id更改
     currentCId.value = comment.commentId
@@ -283,8 +319,86 @@ const handleLikeComment = async (comment) => {
         comment.likedCount += 1
     }
     comment.liked = !comment.liked
-
 }
+const deleteComment = async (comment) => {
+    const res = await props.handleComment({
+        id: props.id,
+        type: props.type,
+        commentId: comment.commentId,
+        t: 0
+    })    
+    if(!res){
+        message.value.addMessage({text: '删除失败', duration: 2000})
+        return
+    }
+    if(subComments.value) {
+        const index = subComments.value.comments.findIndex(item => item.commentId === comment.commentId)
+        if(index === -1) {
+            return
+        }
+        subComments.value.comments.splice(index, 1)
+        subComments.value.totalCount -= 1
+        message.value.addMessage({text: '删除成功', duration: 2000})   
+        return
+    }
+    const index = props.comments[props.sortType].findIndex(item => item.commentId === comment.commentId)
+    if(index === -1) {
+        return
+    }
+    props.comments[props.sortType].splice(index, 1)
+    message.value.addMessage({text: '删除成功', duration: 2000})    
+}
+
+let io = null
+let loadingDom = null
+let picIo = null
+let imgs = null
+onMounted(() => {
+    const loadComments = useDebounce(() => {
+        emit('loadComments')
+    },500)
+    loadingDom = document.querySelector('.ring')
+    io = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                if(entry.target.classList.value === 'ring'){
+                    loadComments()
+                }
+                console.log('intersection', entry.target.classList.value);
+            }
+        })
+    }, {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.5
+    })
+    io.observe(loadingDom)
+    picIo = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                const img = entry.target
+                img.src = img.dataset.src
+                img.classList.remove('lazy')
+                img.removeAttribute('data-src')
+                picIo.unobserve(img)
+            }
+        })
+    }, {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.5
+    })
+    imgs = document.querySelectorAll('img[data-src].lazy')
+    imgs.forEach(img => {
+        picIo.observe(img)
+    })
+})
+onUnmounted(() => {
+    io.unobserve(loadingDom)
+    io.disconnect()
+    picIo.unobserve(imgs)
+    picIo.disconnect()
+})
 </script>
 
 <style scoped>
@@ -365,9 +479,6 @@ const handleLikeComment = async (comment) => {
 .comment-item:hover {
     background-color: #e0e0e0;
 }
-.comment-item:last-child {
-    margin-bottom: 48px;
-}
 .comment-item-content {
     display: flex;
     justify-content: flex-start;
@@ -413,8 +524,14 @@ const handleLikeComment = async (comment) => {
 }
 .comment-item-info .top .like,
 .owner-infos .top .like,
-.sub-comment-item-info .top .like {
+.sub-comment-item-info .top .like{
     margin-left: auto;
+    font-size: 10px;
+    color: #666;
+    cursor: pointer;
+}
+.delete {
+    margin-left: 4px;
     font-size: 10px;
     color: #666;
     cursor: pointer;
@@ -422,7 +539,10 @@ const handleLikeComment = async (comment) => {
 .comment-item-info .top .like .iconfont,
 .owner-infos .top .like .iconfont,
 .sub-comment-item-info .top .like .iconfont {
-    font-size: 10px;
+    font-size: 12px;
+}
+.delete .iconfont {
+    font-size: 14px;
 }
 .comment-item-info .center,
 .owner-infos .center,
@@ -593,18 +713,18 @@ const handleLikeComment = async (comment) => {
 
 .comment-list-enter-from {
     opacity: 0;
-    transform: translateX(5px);
+    transform: translateY(5px);
 }
 .comment-list-enter-to {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
 }
 .comment-list-leave-active {
     transition: all 0.3s ease;
 }
 .comment-list-leave-from {
     opacity: 1;
-    transform: translateX(0);
+    transform: translateY(0);
 }
 .comment-list-leave-to {
     opacity: 0;
@@ -698,6 +818,26 @@ input::placeholder {
 .input-btn-warp button:hover {
     background-color: #0e8aff;
 }
+
+
+
+/* loading动画 */
+.ring {
+    margin: 0 auto;
+    margin-bottom: 56px;
+    width: 24px;
+    height: 24px;
+    border: 6px rgb(255 74 105 / 25%) solid;
+    border-top: 6px #ff4a69 solid;
+    border-radius: 50%;
+    animation: spin 0.6s infinite linear;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 
 
 /* 滚动条默认隐藏 */

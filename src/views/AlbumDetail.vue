@@ -1,121 +1,140 @@
 <template>
     <div class="album-detail-container">
-        <div class="album-detail-playList-warp">
-            <div class="playList-infos-warp">
-                <div class="left" v-animate="{
-                    name: 'albumImg',
-                    duration: 2,
-                    delay: 0,
-                    timingFunction: 'ease-in-out',
-                    direction: 'alternate-reverse',
-                    iterationCount: 'infinite',
-                }">
-                    <img :src="albumDetail?.coverImgUrl" alt="coverImgUrl" v-if="albumDetail?.coverImgUrl">
-                    <img src="" alt="coverImgUrl" v-else>
-                </div>
-                <div class="right">
-                    <p class="title">{{ albumDetail?.name }}</p>
-                    <div class="author">
-                        <img :src="albumDetail?.creator.avatarUrl" alt="authorImgUrl">
-                        {{ albumDetail?.creator.nickname }}                        
+        <Transition name="scale-fade">
+            <div class="album-detail-playList-warp" v-show="!showComment">
+                <div class="playList-infos-warp">
+                    <div class="left no-select" v-animate="{
+                        name: 'albumImg',
+                        duration: 2,
+                        delay: 0,
+                        timingFunction: 'ease-in-out',
+                        direction: 'alternate-reverse',
+                        iterationCount: 'infinite',
+                    }">
+                        <img :src="albumDetail?.coverImgUrl" alt="coverImgUrl" v-if="albumDetail?.coverImgUrl">
+                        <img src="" alt="" v-else>
                     </div>
-                    <div class="pulish">
-                        <span>{{ `创建时间:${formatDate(new Date(albumDetail?.createTime), '-')}`}}</span>
-                        <span>{{ `最后更新时间:${formatDate(new Date(albumDetail?.updateTime), '-')}  ${albumDetail?.trackCount}首` }}</span>
-                    </div>
-                    <div class="tags">
-                        <ul>
-                            <li v-for="tag in albumDetail?.tags" :key="tag">{{ tag }}</li>
-                        </ul>
-                    </div>
-                    <p class="description">{{ albumDetail?.description }}</p>    
-                    <div class="operation">
-                        <button @click="handlePlayClick">
-                            <i class="iconfont icon-bofang"></i>
-                            播放
-                        </button>
-                        <button>
-                            <i class="iconfont icon-subscribe"></i>
-                            {{ formatNumber(albumDetail?.subscribedCount) }}
-                        </button>
-                        <button>
-                            <i class="iconfont icon-SHARE"></i>
-                            {{ formatNumber(albumDetail?.shareCount) }}
-                        </button>
+                    <div class="right">
+                        <p class="title">{{ albumDetail?.name }}</p>
+                        <div class="author">
+                            <img class="no-select" :src="albumDetail?.creator.avatarUrl" alt="authorImgUrl">
+                            {{ albumDetail?.creator.nickname }}                        
+                        </div>
+                        <div class="pulish no-select">
+                            <span>{{ `创建时间:${formatDate(new Date(albumDetail?.createTime), '-')}`}}</span>
+                            <span>{{ `最后更新时间:${formatDate(new Date(albumDetail?.updateTime), '-')}  ${albumDetail?.trackCount}首` }}</span>
+                        </div>
+                        <div class="tags no-select">
+                            <ul>
+                                <li v-for="tag in albumDetail?.tags" :key="tag">{{ tag }}</li>
+                            </ul>
+                        </div>
+                        <p class="description">{{ albumDetail?.description }}</p>    
+                        <div class="operation no-select">
+                            <button @click="handlePlayClick">
+                                <i class="iconfont icon-bofang"></i>
+                                播放
+                            </button>
+                            <button>
+                                <i class="iconfont icon-subscribe"></i>
+                                {{ formatNumber(albumDetail?.subscribedCount) }}
+                            </button>
+                            <button>
+                                <i class="iconfont icon-SHARE"></i>
+                                {{ formatNumber(albumDetail?.shareCount) }}
+                            </button>
+                            <button @click="handleShowComment">
+                                <i class="iconfont icon-bofang"></i>
+                                评论
+                            </button>
+                        </div>                
                     </div>                
-                </div>                
+                </div>
+                <div class="playList-tracks-warp no-select" v-hover="{
+                        enterClass: 'show-scrollbar',
+                        leaveClass: 'show-scrollbar',
+                    }">
+                    <ContextMenu 
+                        @select="handleSelectClick"
+                        watchClass="playList-tracks-item"
+                        :menu="[{
+                        label: '下一首播放',
+                        icon: 'icon-Playlists-xiayishoubofang',
+                    }, {
+                        label: '添加到歌单',
+                        icon: 'icon-shoucangdaogedan',
+                    }, {
+                        label: '下载',
+                        icon: 'icon-xiazai',
+                    },{
+                        label: '删除',
+                        icon: 'icon-shanchu',
+                    }]">
+                        <ul class="playList-tracks-list">
+                            <TransitionGroup name="track-list">
+                                <li @click="handleTrackClick(track)" 
+                                    class="playList-tracks-item"
+                                    v-for="(track, index) in albumTracks" 
+                                    :key="track?.id">
+                                    <div class="track-index">{{ index + 1}}</div>
+                                    <div class="track-infos">
+                                        <p class="track-name">{{ track?.name }}</p>
+                                        <p class="track-author">{{ track?.ar.map(item => item.name).join('/') }}</p>
+                                    </div>
+                                    <div class="track-mv" v-if="track?.mv && track?.mv !== 0">
+                                        <i @click.stop="handleMvClick(track.mv)" class="iconfont icon-mv"></i>
+                                    </div>                        
+                                </li>
+                            </TransitionGroup>                    
+                        </ul>
+                    </ContextMenu>
+                </div>
+                <BackTop :query="'.playList-tracks-warp'"  class="playList-backTop"/>
             </div>
-            <div class="playList-tracks-warp" v-hover="{
-                    enterClass: 'show-scrollbar',
-                    leaveClass: 'show-scrollbar',
-                }">
-                <ContextMenu 
-                    @select="handleSelectClick"
-                    watchClass="playList-tracks-item"
-                    :menu="[{
-                    label: '下一首播放',
-                    icon: 'icon-Playlists-xiayishoubofang',
-                }, {
-                    label: '添加到歌单',
-                    icon: 'icon-shoucangdaogedan',
-                }, {
-                    label: '下载',
-                    icon: 'icon-xiazai',
-                },{
-                    label: '删除',
-                    icon: 'icon-shanchu',
-                }]">
-                    <ul class="playList-tracks-list">
-                        <TransitionGroup name="track-list">
-                            <li @click="handleTrackClick(track)" 
-                                class="playList-tracks-item"
-                                v-for="(track, index) in albumTracks" 
-                                :key="track?.id">
-                                <div class="track-index">{{ index + 1}}</div>
-                                <div class="track-infos">
-                                    <p class="track-name">{{ track?.name }}</p>
-                                    <p class="track-author">{{ track?.ar.map(item => item.name).join('/') }}</p>
-                                </div>
-                                <div class="track-mv" v-if="track?.mv && track?.mv !== 0">
-                                    <i @click.stop="handleMvClick(track.mv)" class="iconfont icon-mv"></i>
-                                </div>                        
-                            </li>
-                        </TransitionGroup>                    
-                    </ul>
-                </ContextMenu>
+        </Transition>
+        <Transition name="scale-fade">
+            <div class="album-detail-comment-warp" v-show="showComment">
+                <!-- <comment></comment> -->
+                 132132131
+                 1321313
+                <button @click="handleHideComment">隐藏评论</button>
             </div>
-            
-            <BackTop :query="'.playList-tracks-warp'"  class="playList-backTop"/>
-        </div>
-        <div class="album-detail-comment-warp">
-
-        </div>
+        </Transition>
     </div>
 </template>
 
 <script setup>
 import BackTop from '../components/BackTop.vue';
 import ContextMenu from '../components/ContextMenu.vue';
-import { onMounted, ref, shallowRef } from 'vue';
+const comment = defineAsyncComponent(() => import('@/components/Comment.vue'));
+import { onMounted, ref, shallowRef, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router'
 import { getPlaylistDetail, getPlaylistTracks } from '@/request/musicApi/playlist'
 import { useLocalStore } from '@/store/localStore';
+import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
 import useNumberToTenThousand from '../hooks/useNumberToTenThousand';
 import useDateFormat from '@/hooks/useDateFormat'
+import useThrottle from '../hooks/useThrottle'
 const route = useRoute()
 const localStore = useLocalStore()
+const userStore = useUserStore()
 const formatNumber = useNumberToTenThousand()
 const formatDate = useDateFormat()
 const { musicList, currentIndex, isPlaying, volume, loop, albumCaches, maxCacheCount } = storeToRefs(localStore)
+const { isLogin, userInfo } = storeToRefs(userStore)
 const albumId = route.params.id
 const albumDetail = shallowRef(null)
 const albumTracks = shallowRef(null)
+const delay = 2000
+const showComment = ref(false)
 
-const handleTrackClick = (track) => {
+
+
+const handleTrackClick = useThrottle((track) => {
     if (!track) return;
     localStore.pushMusicToList(track)
-}
+},delay)
 const handleSelectClick = (dom,menuItem) => {
     const index = parseInt(dom.children[0].innerText) - 1;
     const track = albumTracks.value[index];
@@ -123,21 +142,38 @@ const handleSelectClick = (dom,menuItem) => {
     if (menuItem.label === '下一首播放') {
         localStore.nextMusic(track)                
     } else if (menuItem.label === '添加到歌单') {
+        if (!isLogin.value) {
+            console.log('请先登录');
+            return;
+        }
         console.log('添加到歌单')
     } else if (menuItem.label === '下载') {
         console.log('下载')
     } else if (menuItem.label === '删除') {
+        if (!isLogin.value) {
+            console.log('请先登录');
+            return;
+        }
+        if (userInfo.value.userId !== albumDetail.value.userId) {
+            console.log('不可删除别人歌单里的歌曲');
+            return;
+        }
         console.log('删除')
     }
 }
-const handlePlayClick = () => {
+const handlePlayClick = useThrottle(() => {
     if(!albumTracks.value) return;
     localStore.setMusicList(albumTracks.value)
-}
-const handleMvClick = (mvId) => {
+},delay)
+const handleMvClick = useThrottle((mvId)=>{
     console.log(mvId)
+},delay)
+const handleShowComment = () => {
+    showComment.value = true
 }
-
+const handleHideComment = () => {
+    showComment.value = false
+}
 
 // onMounted 在组件首次挂载完成时触发的，这里用来请求歌单详情和歌曲列表
 onMounted( async () => {
@@ -184,27 +220,16 @@ onMounted( async () => {
 </script>
 
 <style scoped>
-.track-list-enter-active,
-.track-list-leave-active {
-    transition: all .2s ease-in-out;
-}
-.track-list-enter-from,
-.track-list-leave-to {
-  
-  opacity: 0;
-  transform: translateY(10px);
-}
 .album-detail-container {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    display: flex;
 }
 .album-detail-playList-warp {
     position: relative;
-    width: 872px;
+    width: 100%;
+    min-width: 420px;
     height: 100%;
-    flex-grow: 1;
     padding: 16px;
     display: flex;
     flex-direction: column;
@@ -226,8 +251,8 @@ onMounted( async () => {
     padding: 16px;
 }
 .left img {
-    width: 100%;
-    height: 100%;
+    width: 100%;    
+    aspect-ratio: 1/1;
     border-radius: 16px;
     object-fit: cover;
     cursor: pointer;
@@ -235,7 +260,7 @@ onMounted( async () => {
 .playList-infos-warp .right {
     padding: 16px;
     flex: 1;
-    min-width: 520px;
+    min-width: 380px;
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -394,17 +419,53 @@ onMounted( async () => {
     color: #999;
     font-size: 10px;
 }
-
-.album-detail-comment-warp {
-    width: 320px;
-    /* background: #000; */
-}
-
-
 .playList-backTop {
     right: 40px;
 }
 
+.album-detail-comment-warp {
+    width: 100%;
+    background-color: red;
+    min-width: 420px;
+    padding: 16px;
+}
+
+
+
+
+
+
+
+.track-list-enter-active,
+.track-list-leave-active {
+    transition: all .2s ease-in-out;
+}
+.track-list-enter-from,
+.track-list-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+.scale-fade-enter-active {
+    transition: all .3s ease-in-out;
+}
+.scale-fade-leave-active {
+    transition: all .3s ease-in-out;
+}
+.scale-fade-enter-from {
+    opacity: 0;
+    transform: scale(0.9);
+}
+.scale-fade-enter-to {
+    opacity: 1;
+    transform: scale(1);
+}
+.scale-fade-leave-from {
+    opacity: 1;
+    transform: scale(1);
+}
+.scale-fade-leave-to {
+  opacity: 0;
+}
 
 
 /* 滚动条默认隐藏 */

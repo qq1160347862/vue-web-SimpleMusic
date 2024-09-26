@@ -47,7 +47,7 @@ export const getFloorComments = async (id, type, parentCommentId, limit, time) =
 export const operateComment = async (id, type, commentId, t, content, cookie) => {
     try {
         let url = `/comment?id=${id}&type=${type}&t=${t}&content=${content}&timestamp=${getTimestamp()}`;
-        if(commentId && t === 2) {
+        if(commentId && (t === 2 || t === 0)) {
             url+=`&commentId=${commentId}`
         }
         return musicApi.post(url,{

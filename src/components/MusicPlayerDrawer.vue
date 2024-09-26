@@ -43,7 +43,9 @@
                         </div>
                         <div class="comment-warp">
                           <comment 
-                            v-if="showComment"
+                            v-if="showComment && musicList.length > 0"
+                            :uid="userInfo?.profile.userId"
+                            :isLogin="isLogin"
                             :id="musicList[currentIndex]?.id"
                             :type="0"
                             :sortType="trackSortType"
@@ -51,6 +53,7 @@
                             :getSubComments="localStore.getFloorCommentsData"
                             :likeComment="localStore.handleLikeComment"
                             :handleComment="localStore.handleComment"
+                            @loadComments="loadMoreComments"
                             @switchSortType="switchSortType"></comment>
                         </div>  
                       </div>                                              
@@ -114,6 +117,7 @@ import MusicList from './MusicList.vue';
 const comment = defineAsyncComponent(() => import('./comment.vue'));
 import { computed, onBeforeUnmount, onMounted, ref, inject, defineAsyncComponent } from 'vue';
 import { useLocalStore } from '@/store/localStore';
+import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
 import useAudioVisualizer from '@/hooks/useAudioVisualizer';
 const props = defineProps({
@@ -121,6 +125,7 @@ const props = defineProps({
 })
 const audioVisualizer = useAudioVisualizer()
 const localStore = useLocalStore()
+const userStore = useUserStore()
 const { 
   localPlayer, 
   musicList, 
@@ -135,6 +140,7 @@ const {
   trackSortType,
   trackComments,
 } = storeToRefs(localStore)
+const { userInfo, isLogin } = storeToRefs(userStore)
 const message = inject('message')
 const isMuted = computed(() => volume.value === 0)
 const lastVolume = ref(volume.value)
@@ -157,6 +163,8 @@ const switchBtnOptions = ref([
         value: 2
     },
 ])
+const pageSize = ref(10)
+const pageNo = ref(1)
 // 操作进度条的回调
 const handleProgress = (e) => {
   isDragging.value = e
@@ -237,7 +245,9 @@ const handleSwitchBtnClick = (value) => {
       doms.comment.classList.add('active')
       doms.layout.style.transform = `translateX(-${offset * value}px)`
       showComment.value = true
-      loadComments()
+      if(musicList.value.length > 0){
+        loadComments()
+      }
       break;
     default:
       break;
@@ -296,21 +306,40 @@ const updateLyric = () => {
 // 切换评论排序方式
 const switchSortType = async (type) => {
   trackSortType.value = type
-  await loadComments()
+  if(musicList.value.length > 0){
+    loadComments()
+  }
 }
 // 加载评论
 const loadComments = async () => {
-  const id = musicList.value[currentIndex.value].id
+  const id = musicList.value[currentIndex.value]?.id
+  pageNo.value = 1
   const params = {
     id: id, 
     type: 0, 
     sortType: trackSortType.value, 
-    pageSize: 20, 
-    pageNo: 1, 
+    pageSize: pageSize.value, 
+    pageNo: pageNo.value++, 
   }
+  
   await localStore.getCommentsData(params)
 }
-
+// 加载更多评论
+const loadMoreComments = async () => {
+  let cursor = null
+  if(trackSortType.value === 3 && pageNo.value > 1){
+    const len = trackComments.value[trackSortType.value].length
+    cursor = trackComments.value[trackSortType.value][len - 1].time
+  }
+  const params = {
+    type: 0, 
+    sortType: trackSortType.value, 
+    pageSize: pageSize.value, 
+    pageNo: pageNo.value++, 
+    cursor: cursor,
+  }
+  await localStore.getMoreComments(params)
+}
 onMounted(() => {
   const canvas = document.getElementById('visualizer')
   const audio = document.getElementById('player')
