@@ -94,10 +94,21 @@
         </Transition>
         <Transition name="scale-fade">
             <div class="album-detail-comment-warp" v-show="showComment">
-                <!-- <comment></comment> -->
-                 132132131
-                 1321313
-                <button @click="handleHideComment">隐藏评论</button>
+                <i class="iconfont icon-switch" @click="handleHideComment"></i>
+                <comment 
+                    key="album"                
+                    name="album"
+                    :uid="userInfo?.profile.userId"
+                    :isLogin="isLogin"
+                    :id="+albumId"
+                    :type="2"
+                    :sortType="albumSortType"
+                    :comments="albumComments"
+                    :getSubComments="localStore.getFloorCommentsData"
+                    :likeComment="localStore.handleLikeComment"
+                    :handleComment="localStore.handleComment"
+                    @loadComments="loadMoreComments"
+                    @switchSortType="switchSortType"></comment>                
             </div>
         </Transition>
     </div>
@@ -106,7 +117,8 @@
 <script setup>
 import BackTop from '../components/BackTop.vue';
 import ContextMenu from '../components/ContextMenu.vue';
-const comment = defineAsyncComponent(() => import('@/components/Comment.vue'));
+import comment from '@/components/Comment.vue';
+// const comment = defineAsyncComponent(() => import('@/components/Comment.vue'));
 import { onMounted, ref, shallowRef, defineAsyncComponent } from 'vue';
 import { useRoute } from 'vue-router'
 import { getPlaylistDetail, getPlaylistTracks } from '@/request/musicApi/playlist'
@@ -121,14 +133,20 @@ const localStore = useLocalStore()
 const userStore = useUserStore()
 const formatNumber = useNumberToTenThousand()
 const formatDate = useDateFormat()
-const { musicList, currentIndex, isPlaying, volume, loop, albumCaches, maxCacheCount } = storeToRefs(localStore)
+const {
+    albumCaches, 
+    maxCacheCount,
+    albumComments,
+    albumSortType 
+} = storeToRefs(localStore)
 const { isLogin, userInfo } = storeToRefs(userStore)
 const albumId = route.params.id
 const albumDetail = shallowRef(null)
 const albumTracks = shallowRef(null)
 const delay = 2000
 const showComment = ref(false)
-
+const pageSize = ref(10)
+const pageNo = ref(1)
 
 
 const handleTrackClick = useThrottle((track) => {
@@ -170,11 +188,45 @@ const handleMvClick = useThrottle((mvId)=>{
 },delay)
 const handleShowComment = () => {
     showComment.value = true
+    loadComments()
 }
 const handleHideComment = () => {
     showComment.value = false
 }
-
+// 加载更多评论
+const loadMoreComments = async () => {
+    let cursor = null
+    if(albumSortType.value === 3 && pageNo.value > 1){
+        const len = albumComments.value[albumSortType.value].length
+        cursor = albumComments.value[albumSortType.value][len - 1].time
+    }
+    const params = {
+        type: 2, 
+        sortType: albumSortType.value, 
+        pageSize: pageSize.value, 
+        pageNo: pageNo.value++, 
+        cursor: cursor,
+    }
+    await localStore.getMoreComments(params)
+}
+// 切换评论排序方式
+const switchSortType = async (type) => {
+    albumSortType.value = type
+    loadComments()
+}
+// 加载评论
+const loadComments = async () => {
+    pageNo.value = 1
+    const params = {
+        id: +albumId, 
+        type: 2, 
+        sortType: albumSortType.value, 
+        pageSize: pageSize.value, 
+        pageNo: pageNo.value++, 
+    }
+    
+    await localStore.getCommentsData(params)
+}
 // onMounted 在组件首次挂载完成时触发的，这里用来请求歌单详情和歌曲列表
 onMounted( async () => {
     const isCached = albumCaches.value.findIndex(item => item.id === albumId);
@@ -424,12 +476,29 @@ onMounted( async () => {
 }
 
 .album-detail-comment-warp {
+    position: relative;
     width: 100%;
-    background-color: red;
-    min-width: 420px;
-    padding: 16px;
+    height: 100%;
+    /* min-width: 420px; */
+    /* padding: 16px; */
 }
-
+.album-detail-comment-warp .iconfont {
+    position: absolute;
+    z-index: 999;
+    top: 56px;
+    left: 16px;
+    font-size: 16px;
+    cursor: pointer;
+    border: none;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+.album-detail-comment-warp .iconfont:hover {
+    color: #fff;
+}
 
 
 

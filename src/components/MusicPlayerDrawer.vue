@@ -43,6 +43,8 @@
                         </div>
                         <div class="comment-warp">
                           <comment 
+                            key="track"    
+                            name="track"
                             v-if="showComment && musicList.length > 0"
                             :uid="userInfo?.profile.userId"
                             :isLogin="isLogin"
@@ -114,7 +116,7 @@
 import Slider from './Slider.vue';
 import SwitchBtn from './SwitchBtn.vue';
 import MusicList from './MusicList.vue';
-const comment = defineAsyncComponent(() => import('./comment.vue'));
+import comment from './comment.vue';
 import { computed, onBeforeUnmount, onMounted, ref, inject, defineAsyncComponent } from 'vue';
 import { useLocalStore } from '@/store/localStore';
 import { useUserStore } from '../store/userStore';

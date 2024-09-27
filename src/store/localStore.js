@@ -34,6 +34,8 @@ export const useLocalStore = defineStore("local", () => {
     const total = ref(0)
     const trackComments = ref([])    
     const trackSortType = ref(1)
+    const albumComments = ref([])
+    const albumSortType = ref(1)
 
 
     // 音乐列表覆盖
@@ -102,7 +104,6 @@ export const useLocalStore = defineStore("local", () => {
             pageSize: 20, 
             pageNo: 1, 
         })                      
-        console.log('歌曲已存在，切换至已存在的歌曲',currentIndex.value); 
         return
     }
 
@@ -224,7 +225,17 @@ export const useLocalStore = defineStore("local", () => {
                     break;
                 case 1:
                     break;
-                case 2:
+                case 2: // 歌单评论
+                    // 当前分类停留在albumSortType且是当前歌单的评论，则不请求数据
+                    if(albumComments.value[albumSortType.value] && albumComments.value[0] === id) {
+                        break;
+                    }
+                    const albumRes = await getComments(id, type, sortType, pageSize, pageNo, cursor)
+                    if(albumRes.data.code !== 200){
+                        throw new Error('获取评论失败',albumRes.data.msg)
+                    }
+                    albumComments.value[0] = id
+                    albumComments.value[albumSortType.value] = albumRes.data.data.comments                            
                     break;
                 default:
                     console.error('无效的评论类型')
@@ -253,6 +264,12 @@ export const useLocalStore = defineStore("local", () => {
                 case 1:
                     break;
                 case 2:
+                    const albumId = albumComments.value[0]
+                    const albumRes = await getComments(albumId, type, sortType, pageSize, pageNo, cursor)
+                    if(albumRes.data.code !== 200){
+                        throw new Error('获取评论失败',albumRes.data.msg)
+                    }
+                    albumComments.value[albumSortType.value].push(...albumRes.data.data.comments)                            
                     break;
                 default:
                     console.error('无效的评论类型')
@@ -290,7 +307,7 @@ export const useLocalStore = defineStore("local", () => {
             }
             return res.data.comment? res.data.comment : true
         }catch(err) {
-            console.log('操作评论失败',err)
+            console.log('操作评论失败',err.response.data.msg)
         }
     }
 
@@ -326,6 +343,8 @@ export const useLocalStore = defineStore("local", () => {
         trackSortType,
         trackComments,
         total,
+        albumComments,
+        albumSortType,
         getTrackUrl, 
         getTrackLyric, 
         setMusicList, 

@@ -1,17 +1,23 @@
 <template>
-    <Transition name="comment">
+    <form v-if="isLogin"
+        :id="`${name}form`"
+        ref="formRef"
+        @submit.stop.prevent="handleSubmit(1)" 
+        class="replay-warp">
+        <input v-model="inputContent" ref="inputRef":id="`${name}input`" type="text" placeholder="回车发送评论"></input>
+    </form>
+    <Transition name="comment">        
         <div class="comment-container" v-hover="{
             enterClass: 'show-scrollbar',
             leaveClass: 'show-scrollbar',
-        }" v-show="!showSubComment">
-            
+        }" v-show="!showSubComment">              
             <div class="select-box no-select">
-                <input @click="handleRadio" type="radio" id="recommand" value="1" name="comment-type" checked>
-                <label for="recommand">推荐</label>
-                <input @click="handleRadio" type="radio" id="hot" value="2" name="comment-type">
-                <label for="hot">热门</label>
-                <input @click="handleRadio" type="radio" id="new" value="3" name="comment-type">
-                <label for="new">最新</label>                
+                <input @click="handleRadio" type="radio" :id="`${name}Recommand`" value="1" :name="`${name}comment-type`" checked>
+                <label :for="`${name}Recommand`">推荐</label>
+                <input @click="handleRadio" type="radio" :id="`${name}hot`" value="2" :name="`${name}comment-type`">
+                <label :for="`${name}hot`">热门</label>
+                <input @click="handleRadio" type="radio" :id="`${name}new`" value="3" :name="`${name}comment-type`">
+                <label :for="`${name}new`">最新</label>                
             </div>
             <Transition name="comment-list">
                 <ul class="comment-scollPanel" v-show="comments[sortType]">
@@ -50,19 +56,14 @@
                     </li>
                 </ul>                
             </Transition>
-            <div class="ring" v-show="comments[sortType]"></div>
-            <form v-if="isLogin"
-                @submit.stop.prevent="handleSubmit(1)" 
-                class="replay-warp" v-show="showReplyPanel">
-                <input v-model="inputContent" placeholder="回车发送评论"></input>
-            </form>            
+            <div class="ring" v-show="comments[sortType]"></div>                      
         </div>
     </Transition>
     <Transition name="sub-comment">
         <div class="sub-comment-container" v-show="showSubComment">
             <div class="sub-comment-count no-select">
                 <span>{{ `楼层评论` }}</span>
-                <i class="iconfont icon-close" @click="showSubComment = false"></i>
+                <i class="iconfont icon-close" @click="handleCloseSubComment"></i>
             </div>
             <div class="owner-comment" @click="handleReplyPanel(subComments?.ownerComment)">
                 <div class="owner-avatar no-select">
@@ -70,12 +71,7 @@
                 </div>
                 <div class="owner-infos">
                     <p class="top">
-                        <span class="name">{{ subComments?.ownerComment.user.nickname }}</span>
-                        <!-- <span class="like" @click.stop="handleLikeComment(subComments?.ownerComment)">
-                            {{ subComments?.ownerComment.likedCount }}
-                            <i v-show="!subComments?.ownerComment.liked" class="iconfont icon-like"></i>
-                            <i v-show="subComments?.ownerComment.liked" class="iconfont icon-like-fill"></i>
-                        </span> -->
+                        <span class="name">{{ subComments?.ownerComment.user.nickname }}</span>                    
                         <span class="delete" v-if="uid === subComments?.ownerComment.user.userId">
                             <i @click.stop="deleteComment(subComments?.ownerComment)" class="iconfont icon-shanchu"></i>
                         </span> 
@@ -131,16 +127,19 @@
                         </div>                                                
                     </li>
                 </ul>
+                <div class="sub-ring" 
+                    v-show="subComments?.comments && 
+                    subComments?.comments.length < subComments?.totalCount"></div>
             </div>
         </div>
     </Transition>
     <Teleport to="body">
-        <dialog id="inputPanel" v-if="isLogin">
+        <dialog :id="`${name}inputPanel`" v-if="isLogin">
             <div class="input-panel">
                 <div class="input-warp">
                     <h2>评论</h2>
                     <div class="input-content">
-                        <textarea v-model="inputContent" placeholder="请输入评论内容"></textarea>
+                        <textarea v-model="inputContent" :id="`${name}textarea`" placeholder="请输入评论内容"></textarea>
                     </div>                    
                     <div class="input-btn-warp">
                         <button @click="handleSubmit(2)">回复</button>
@@ -156,6 +155,10 @@
 import { onMounted, onUpdated, onBeforeUpdate, ref, inject, onUnmounted, watch } from 'vue';
 import useDebounce from '@/hooks/useDebounce';
 const props = defineProps({
+    name: {
+        type: String,
+        required: true
+    },
     isLogin: {
         type: Boolean,
         required: true
@@ -197,21 +200,35 @@ const emit = defineEmits(['switchSortType', 'loadComments'])
 const message = inject('message')
 const showSubComment = ref(false)
 const subComments = ref(null)
-const showReplyPanel = ref(true)
 const inputContent = ref('')
 const oldId = ref(null)
 const currentCId = ref(null)
 const currentC = ref(null)
 const floorCid = ref(null)
 const scrollHeight = ref([])
+const formRef = ref(null)
+const inputRef = ref(null)
 const handleShowSubComment = async (commentId) => {
     showSubComment.value = true
+    const scrollDom = document.querySelector('.sub-comment-list-warp')     
     subComments.value = await props.getSubComments({
         id: props.id,
         type: props.type,
         parentCommentId: commentId
     })
+    scrollDom.scrollTo(0, 0) 
     floorCid.value = commentId
+    if(props.isLogin){
+        formRef.value.style.height = '0'
+        inputRef.value.style.visibility = 'hidden'
+    }
+}
+const handleCloseSubComment = () => {
+    if(props.isLogin){
+        formRef.value.style.height = '48px'
+        inputRef.value.style.visibility = 'visible'
+    }    
+    showSubComment.value = false
 }
 watch(() => props.sortType, (newVal, oldVal) => {
     const scrollDom = document.querySelector('.comment-container')
@@ -226,30 +243,39 @@ watch(() => props.sortType, (newVal, oldVal) => {
 const handleRadio = (e) => {
     emit('switchSortType', +e.target.value)        
 }
+const closeInputPanel = () => {
+    if(!props.isLogin) {
+        return
+    }
+    inputContent.value = ''
+    const dialog = document.getElementById(`${props.name}inputPanel`)
+    formRef.value.style.opacity = 1
+    dialog.close()
+}
 const handleReplyPanel = async (comment) => {
     if (!props.isLogin){
         return
     }
-    showReplyPanel.value = false
     oldId.value = props.id  // 记录旧的id,避免切换资源时，组件刷新，id更改
     currentCId.value = comment.commentId
     floorCid.value = comment.commentId
     currentC.value = comment.content
-    const dialog = document.getElementById('inputPanel')
+    inputContent.value = ''
+    const dialog = document.getElementById(`${props.name}inputPanel`)
+    formRef.value.style.opacity = 0
     dialog.showModal()
 }
-const closeInputPanel = () => {
-    showReplyPanel.value = true
-    inputContent.value = ''
-    const dialog = document.getElementById('inputPanel')
-    dialog.close()
-}
 const handleSubmit = async (t) => {
-    const dialog = document.getElementById('inputPanel')
+    if(!props.isLogin) {
+        message.value.addMessage({text: '请先登录', duration: 2000})
+        return
+    }
+    const dialog = document.getElementById(`${props.name}inputPanel`)
     if(inputContent.value.trim() === '') {
         message.value.addMessage({text: '评论内容不能为空', duration: 2000})
         return
     }
+    console.log(inputContent.value);
     dialog.close()
     const res = await props.handleComment({
         id: t === 2 ? oldId.value : props.id, 
@@ -300,6 +326,10 @@ const handleSubmit = async (t) => {
     inputContent.value = ''
 }
 const handleLikeComment = async (comment) => {
+    if(!props.isLogin) {
+        message.value.addMessage({text: '请先登录', duration: 2000})
+        return
+    }
     if(!comment) {
         return
     }
@@ -321,6 +351,10 @@ const handleLikeComment = async (comment) => {
     comment.liked = !comment.liked
 }
 const deleteComment = async (comment) => {
+    if(!props.isLogin) {
+        message.value.addMessage({text: '请先登录', duration: 2000})
+        return
+    }
     const res = await props.handleComment({
         id: props.id,
         type: props.type,
@@ -349,56 +383,65 @@ const deleteComment = async (comment) => {
     message.value.addMessage({text: '删除成功', duration: 2000})    
 }
 
-let io = null
-let loadingDom = null
-let picIo = null
-let imgs = null
-onMounted(() => {
-    const loadComments = useDebounce(() => {
-        emit('loadComments')
-    },500)
-    loadingDom = document.querySelector('.ring')
-    io = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if(entry.isIntersecting){
-                if(entry.target.classList.value === 'ring'){
-                    loadComments()
-                }
-                console.log('intersection', entry.target.classList.value);
-            }
-        })
-    }, {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.5
-    })
-    io.observe(loadingDom)
-    picIo = new IntersectionObserver(entries => {
-        entries.forEach(entry => {
-            if(entry.isIntersecting){
-                const img = entry.target
-                img.src = img.dataset.src
-                img.classList.remove('lazy')
-                img.removeAttribute('data-src')
-                picIo.unobserve(img)
-            }
-        })
-    }, {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.5
-    })
-    imgs = document.querySelectorAll('img[data-src].lazy')
-    imgs.forEach(img => {
-        picIo.observe(img)
-    })
-})
-onUnmounted(() => {
-    io.unobserve(loadingDom)
-    io.disconnect()
-    picIo.unobserve(imgs)
-    picIo.disconnect()
-})
+// let io = null
+// let loadingDom = null
+// let loadingDom2 = null
+// onMounted(() => {
+    
+//     loadingDom = document.querySelector('.ring')
+//     loadingDom2 = document.querySelector('.sub-ring')
+//     const loadComments = useDebounce(() => {
+//         emit('loadComments')
+//     },500)
+//     const getMoreSubComments = useDebounce(async () => {
+//         const time = subComments.value.comments[subComments.value.comments.length - 1].time
+//         const res = await props.getSubComments({
+//             id: props.id,
+//             type: props.type,
+//             parentCommentId: floorCid.value,
+//             limit: 10, 
+//             time: time
+//         })
+//         if(!res){
+//             message.value.addMessage({text: '加载失败', duration: 2000})
+//             loadingDom2.style.display = 'none'
+//             return
+//         }
+//         if(res.comments.length === 0) {
+//             loadingDom2.style.display = 'none'
+//             return
+//         }
+//         subComments.value.comments.push(...res.comments)
+//     },500)
+    
+//     io = new IntersectionObserver(entries => {
+//         entries.forEach(entry => {
+//             if(entry.isIntersecting){
+//                 if(entry.target.classList.value === 'ring'){
+//                     console.log('load more comments');
+                    
+//                     loadComments()
+//                 }
+//                 if(entry.target.classList.value ==='sub-ring'){
+//                     console.log('load more sub-comments');
+//                     getMoreSubComments()
+//                 }
+//                 console.log('intersection', entry.target.classList.value);
+//             }
+//         })
+//     }, {
+//         root: null,
+//         rootMargin: '0px',
+//         threshold: 0.5
+//     })
+//     io.observe(loadingDom)
+//     io.observe(loadingDom2)
+// })
+// onUnmounted(() => {
+//     io.unobserve(loadingDom)
+//     io.unobserve(loadingDom2)
+//     io.disconnect()
+// })
 </script>
 
 <style scoped>
@@ -422,25 +465,21 @@ onUnmounted(() => {
     gap: 12px;
 }
 .replay-warp {
-    position: fixed;
-    bottom: 0;
-    left: 0;
     width: 100%;
     height: 48px;
     display: flex;
     justify-content: flex-start;
-    border-radius: var(--border-radius-light);
     align-items: center;
     backdrop-filter: blur(5px);
     padding: 0;
     background-color: #ffffff44;
+    transition: all 0.2s ease-in-out;
 }
 .select-box {
     position: sticky;
     top: 0;
     left: 0;
     width: 100%;
-    backdrop-filter: blur(5px);
     display: flex;
     justify-content: flex-end;
     align-items: center;
@@ -732,7 +771,7 @@ onUnmounted(() => {
 }
 
 
-#inputPanel {
+dialog {
     position: fixed;
     top: 0;
     left: 0;
@@ -748,14 +787,14 @@ onUnmounted(() => {
     transform: translateY(24vh);
     z-index: 99999;
 }
-#inputPanel:not([open]){
+dialog:not([open]){
     display: block;
     opacity: 0;
     transform: translateY(calc(24vh - 24px));
     visibility: hidden;    
     pointer-events: none;
 }
-#inputPanel::backdrop {
+dialog::backdrop {
     background-color: var(--dialog-modal-mask-bg-color);
     /* backdrop-filter: blur(1px); */
 }
@@ -822,7 +861,8 @@ input::placeholder {
 
 
 /* loading动画 */
-.ring {
+.ring,
+.sub-ring {
     margin: 0 auto;
     margin-bottom: 56px;
     width: 24px;
@@ -831,6 +871,9 @@ input::placeholder {
     border-top: 6px #ff4a69 solid;
     border-radius: 50%;
     animation: spin 0.6s infinite linear;
+}
+.sub-ring {
+    margin-bottom: 12px;
 }
 @keyframes spin {
   to {
