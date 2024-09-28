@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import Loading1 from './Loading1.vue';
+import Loading1 from './animations/Loading1.vue';
 import { useLocalStore } from '../store/localStore';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue'

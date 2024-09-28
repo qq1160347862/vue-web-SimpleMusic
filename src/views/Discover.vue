@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import BackTop from '../components/BackTop.vue';
+import BackTop from '../components/utils/BackTop.vue';
 import { getDiscoverPlaylist, getRecommendPlaylist } from '../request/musicApi/playlist';
 import { defineAsyncComponent, onMounted, ref, inject } from 'vue';
 const AlbumCard = defineAsyncComponent(() => import('@/components/AlbumCard.vue'));

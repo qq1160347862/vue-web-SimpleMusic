@@ -25,7 +25,7 @@ import Background from './components/Background.vue';
 import Nav from './components/Nav.vue';
 import Aside from './components/Aside.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
-import Message from './components/Message.vue';
+import Message from './components/utils/Message.vue';
 import { useRoute } from 'vue-router';
 import { computed, provide, ref } from 'vue';
 const route = useRoute();

@@ -114,7 +114,7 @@
 
 <script setup>
 import Slider from './Slider.vue';
-import SwitchBtn from './SwitchBtn.vue';
+import SwitchBtn from './utils/SwitchBtn.vue';
 import MusicList from './MusicList.vue';
 import comment from './comment.vue';
 import { computed, onBeforeUnmount, onMounted, ref, inject, defineAsyncComponent } from 'vue';

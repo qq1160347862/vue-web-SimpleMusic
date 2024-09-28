@@ -20,12 +20,12 @@
                 <label :for="`${name}new`">最新</label>                
             </div>
             <Transition name="comment-list">
-                <ul class="comment-scollPanel" v-show="comments[sortType]">
+                <ul class="comment-scollPanel" v-show="comments[sortType]" v-lazy>
                     <li class="comment-item" @click="handleReplyPanel(comment)"
                         v-for="(comment, index) in comments[sortType]" :key="index">
                         <div class="comment-item-content">
                             <div class="comment-item-avatar no-select"> 
-                                <img :src="comment.user.avatarUrl"  alt="user-avatar">
+                                <img :src="avatarDefault" :data-src="comment.user.avatarUrl" class="lazy" @error="picError" alt="user-avatar">
                             </div>
                             <div class="comment-item-info">
                                 <p class="top">
@@ -56,7 +56,7 @@
                     </li>
                 </ul>                
             </Transition>
-            <div class="ring" v-show="comments[sortType]"></div>                      
+            <div class="ring" :id="`${name}-ring`" v-show="comments[sortType]"></div>                      
         </div>
     </Transition>
     <Transition name="sub-comment">
@@ -91,11 +91,11 @@
                 enterClass: 'show-scrollbar',
                 leaveClass: 'show-scrollbar',
             }">                
-                <ul class="sub-comment-list">
+                <ul class="sub-comment-list" v-lazy>
                     <li class="sub-comment-item" @click="handleReplyPanel(subComment)"
                         v-for="(subComment, index) in subComments?.comments" :key="index">
                         <div class="sub-comment-item-avatar no-select">
-                            <img :src="subComment?.user.avatarUrl" alt="">
+                            <img :src="avatarDefault" :data-src="subComment.user.avatarUrl" @error="picError" class="lazy" alt="">
                         </div>
                         <div class="sub-comment-item-info">
                             <p class="top">
@@ -128,6 +128,7 @@
                     </li>
                 </ul>
                 <div class="sub-ring" 
+                    :id="`${name}-sub-ring`" 
                     v-show="subComments?.comments && 
                     subComments?.comments.length < subComments?.totalCount"></div>
             </div>
@@ -154,6 +155,7 @@
 <script setup>
 import { onMounted, onUpdated, onBeforeUpdate, ref, inject, onUnmounted, watch } from 'vue';
 import useDebounce from '@/hooks/useDebounce';
+import avatarDefault from '@/assets/images/user/avatar-default.png'
 const props = defineProps({
     name: {
         type: String,
@@ -382,66 +384,67 @@ const deleteComment = async (comment) => {
     props.comments[props.sortType].splice(index, 1)
     message.value.addMessage({text: '删除成功', duration: 2000})    
 }
+const picError = (e) => {
+    e.target.src = avatarDefault
+}
 
-// let io = null
-// let loadingDom = null
-// let loadingDom2 = null
-// onMounted(() => {
+const io = ref(null)
+let loadingDom = null
+let loadingDom2 = null
+onMounted(() => {
+    loadingDom = document.querySelector(`#${props.name}-ring`)
+    loadingDom2 = document.querySelector(`#${props.name}-sub-ring`)
+    const loadComments = useDebounce(() => {
+        emit('loadComments')
+    },500)
+    const getMoreSubComments = useDebounce(async () => {
+        const time = subComments.value.comments[subComments.value.comments.length - 1].time
+        const res = await props.getSubComments({
+            id: props.id,
+            type: props.type,
+            parentCommentId: floorCid.value,
+            limit: 10, 
+            time: time
+        })
+        if(!res){
+            message.value.addMessage({text: '加载失败', duration: 2000})
+            loadingDom2.style.display = 'none'
+            return
+        }
+        if(res.comments.length === 0) {
+            loadingDom2.style.display = 'none'
+            return
+        }
+        subComments.value.comments.push(...res.comments)
+    },500)
     
-//     loadingDom = document.querySelector('.ring')
-//     loadingDom2 = document.querySelector('.sub-ring')
-//     const loadComments = useDebounce(() => {
-//         emit('loadComments')
-//     },500)
-//     const getMoreSubComments = useDebounce(async () => {
-//         const time = subComments.value.comments[subComments.value.comments.length - 1].time
-//         const res = await props.getSubComments({
-//             id: props.id,
-//             type: props.type,
-//             parentCommentId: floorCid.value,
-//             limit: 10, 
-//             time: time
-//         })
-//         if(!res){
-//             message.value.addMessage({text: '加载失败', duration: 2000})
-//             loadingDom2.style.display = 'none'
-//             return
-//         }
-//         if(res.comments.length === 0) {
-//             loadingDom2.style.display = 'none'
-//             return
-//         }
-//         subComments.value.comments.push(...res.comments)
-//     },500)
-    
-//     io = new IntersectionObserver(entries => {
-//         entries.forEach(entry => {
-//             if(entry.isIntersecting){
-//                 if(entry.target.classList.value === 'ring'){
-//                     console.log('load more comments');
+    io.value = new IntersectionObserver(entries => {
+        entries.forEach(entry => {
+            if(entry.isIntersecting){
+                if(entry.target.classList.value === 'ring'){
+                    console.log('load more comments');
                     
-//                     loadComments()
-//                 }
-//                 if(entry.target.classList.value ==='sub-ring'){
-//                     console.log('load more sub-comments');
-//                     getMoreSubComments()
-//                 }
-//                 console.log('intersection', entry.target.classList.value);
-//             }
-//         })
-//     }, {
-//         root: null,
-//         rootMargin: '0px',
-//         threshold: 0.5
-//     })
-//     io.observe(loadingDom)
-//     io.observe(loadingDom2)
-// })
-// onUnmounted(() => {
-//     io.unobserve(loadingDom)
-//     io.unobserve(loadingDom2)
-//     io.disconnect()
-// })
+                    loadComments()
+                }
+                if(entry.target.classList.value ==='sub-ring'){
+                    console.log('load more sub-comments');
+                    getMoreSubComments()
+                }
+            }
+        })
+    }, {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.5
+    })
+    io.value.observe(loadingDom)
+    io.value.observe(loadingDom2)
+})
+onUnmounted(() => {
+    io.value.unobserve(loadingDom)
+    io.value.unobserve(loadingDom2)
+    io.value.disconnect()
+})
 </script>
 
 <style scoped>

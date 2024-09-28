@@ -54,7 +54,7 @@
 
 <script setup>
 import { ref } from 'vue';
-import Button from './Button.vue';
+import Button from './utils/Button.vue';
 import { useRoute,useRouter } from 'vue-router';
 const menu1Func = ref(null)
 const route = useRoute()

@@ -82,9 +82,9 @@
 <script setup>
 import { ref } from "vue";
 import Calendar from "../components/Calendar.vue";
-import Button from "../components/Button.vue";
+import Button from "../components/utils/Button.vue";
 import CursorText from "../components/CursorText.vue";
-import BackTop from "../components/BackTop.vue";
+import BackTop from "../components/utils/BackTop.vue";
 import calendarBg1 from "@/assets/images/calendar/calendarBg1.jpg";
 import calendarBg2 from "@/assets/images/calendar/calendarBg2.jpg";
 import calendarBg3 from "@/assets/images/calendar/calendarBg3.gif";

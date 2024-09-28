@@ -115,11 +115,10 @@
 </template>
 
 <script setup>
-import BackTop from '../components/BackTop.vue';
-import ContextMenu from '../components/ContextMenu.vue';
+import BackTop from '../components/utils/BackTop.vue';
+import ContextMenu from '../components/utils/ContextMenu.vue';
 import comment from '@/components/Comment.vue';
-// const comment = defineAsyncComponent(() => import('@/components/Comment.vue'));
-import { onMounted, ref, shallowRef, defineAsyncComponent } from 'vue';
+import { onMounted, ref, shallowRef, inject } from 'vue';
 import { useRoute } from 'vue-router'
 import { getPlaylistDetail, getPlaylistTracks } from '@/request/musicApi/playlist'
 import { useLocalStore } from '@/store/localStore';
@@ -129,6 +128,7 @@ import useNumberToTenThousand from '../hooks/useNumberToTenThousand';
 import useDateFormat from '@/hooks/useDateFormat'
 import useThrottle from '../hooks/useThrottle'
 const route = useRoute()
+const message = inject('message')
 const localStore = useLocalStore()
 const userStore = useUserStore()
 const formatNumber = useNumberToTenThousand()
@@ -151,6 +151,7 @@ const pageNo = ref(1)
 
 const handleTrackClick = useThrottle((track) => {
     if (!track) return;
+    // message.value.addMessage({text: `切换至:《${track.name}》`, duration: 2000})
     localStore.pushMusicToList(track)
 },delay)
 const handleSelectClick = (dom,menuItem) => {

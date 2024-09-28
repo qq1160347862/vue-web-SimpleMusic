@@ -103,11 +103,14 @@ const handleProgress = (e) => {
 }
 // 音乐播放器更新的回调
 const updateProgress = (e) => {
-    if(!isDragging.value){
-        progress.value = e.target.currentTime / player.value.duration * 100
-    }
-    currentTime.value = formatSeconds(e.target.currentTime)
-    duration.value = formatSeconds(e.target.duration)
+    requestAnimationFrame(() => {
+        if(!isDragging.value){
+        
+            progress.value = e.target.currentTime / player.value.duration * 100
+        }
+        currentTime.value = formatSeconds(e.target.currentTime)
+        duration.value = formatSeconds(e.target.duration)
+    })    
 }
 // 音乐开关
 const musicOn_off = () => {    

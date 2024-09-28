@@ -52,7 +52,7 @@
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import Input from './Input.vue';
-import Dialog from '../components/Dialog.vue';
+import Dialog from '../components/utils/Dialog.vue';
 import useNumberToTenThousand from '../hooks/useNumberToTenThousand'
 import qrImg from '../assets/images/user/avatar-default.png'
 import { useUserStore } from '@/store/userStore'
