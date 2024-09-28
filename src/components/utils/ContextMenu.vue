@@ -6,7 +6,7 @@
                 @beforeEnter="handleBeforeEnter" 
                 @enter="handleEnter" 
                 @afterEnter="handleAfterEnter">
-                <section v-if="showMenu" class="context-menu" :style="{
+                <section v-show="showMenu" class="context-menu" :style="{
                     left: `${x}px`,
                     top: `${y}px`,
                 }">
@@ -15,7 +15,7 @@
                             @click="handleClick(item)"
                             class="menu-item" 
                             v-for="(item, index) in menu" 
-                            ey="item.label">
+                            :key="item.label">
                             <i :class="`iconfont ${item.icon}`"></i>
                             {{ item.label }}
                         </li>
@@ -27,7 +27,7 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, onUpdated, ref } from 'vue'
 import useViewport from '@/hooks/useViewport'
 const props = defineProps({
     menu: {
@@ -56,9 +56,9 @@ const handleContextMenu = (event) => {
     event.stopPropagation()
     const isTarget = event?.target.classList.contains(props.watchClass)
     if (!isTarget) return   
-    console.log(event.clientX, event.clientY);
-    console.log(vw.value, vh.value);
-    console.log(w.value, h.value);
+    // console.log(event.clientX, event.clientY);
+    // console.log(vw.value, vh.value);
+    // console.log(w.value, h.value);
     
     // 判断菜单是否超出可视范围
     x.value = event.clientX
@@ -97,16 +97,17 @@ const handleAfterEnter = (el) => {
     el.style.transition = 'none'
 }
 const handleResize = (e) => {
+    if (!e.width && !e.height) return;
     w.value = e.width
     h.value = e.height    
 }
 onMounted(() => {
     const container = containerRef.value
+    w.value = 100
     container.addEventListener('contextmenu', handleContextMenu)
     window.addEventListener('click', closeMenu, true)
     window.addEventListener('contextmenu', closeMenu, true)
 })
-
 onBeforeUnmount(() => {
     const container = containerRef.value
     container.removeEventListener('contextmenu', handleContextMenu)
@@ -118,7 +119,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .context-menu {
     position: absolute;
-    z-index: 999;
+    z-index: 99999;
     background: rgba(255, 255, 255, 0.685);
     box-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
     min-width: 100px;

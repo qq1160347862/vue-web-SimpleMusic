@@ -61,7 +61,7 @@ export const useLocalStore = defineStore("local", () => {
     const pushMusicToList = async (track) => {
 
         isPlaying.value = true
-        trackComments.value = []        
+        const oldIndex = currentIndex.value                
         const index = musicList.value.findIndex((item) => {
             return item.id === track.id
         })
@@ -96,7 +96,9 @@ export const useLocalStore = defineStore("local", () => {
             target.lyric = lyric
         }
         
+        // 避免一首歌的评论多次请求
         currentIndex.value = index
+        if(oldIndex === currentIndex.value) return;
         await getCommentsData({
             id: musicList.value[currentIndex.value].id, 
             type: 0, 

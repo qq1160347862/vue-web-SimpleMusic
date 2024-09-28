@@ -157,7 +157,6 @@ const handleTrackClick = useThrottle((track) => {
 const handleSelectClick = (dom,menuItem) => {
     const index = parseInt(dom.children[0].innerText) - 1;
     const track = albumTracks.value[index];
-    console.log(index,track)
     if (menuItem.label === '下一首播放') {
         localStore.nextMusic(track)                
     } else if (menuItem.label === '添加到歌单') {

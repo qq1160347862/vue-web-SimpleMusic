@@ -2,38 +2,85 @@
     <div class="music-list-container no-select" v-hover="{
         enterClass: 'show-scrollbar',
         leaveClass: 'show-scrollbar',
-    }">        
-            <ul class="music-list">  
-                <TransitionGroup name="list">           
-                    <li @click="handleClick(song)"
-                        class="music-item"
-                        v-for="(song, index) in musicList" 
-                        :key="song?.id">
-                        <div :class="{
-                            'song-index':currentIndex !== index,
-                            'song-index active':currentIndex === index
-                            }">{{ index + 1 }}</div>
-                        <div class="song-infos">
-                            <p class="song-name">{{ song?.name }}</p>
-                            <p class="song-author">{{ song?.ar.map(item => item.name).join('/') }}</p>
-                        </div> 
-                        <Loading1 v-if="currentIndex === index" class="loading-warp"></Loading1>                  
-                    </li>
-                </TransitionGroup>
-            </ul>        
+    }">
+        <ContextMenu 
+            @select="handleSelectClick"
+            watchClass="music-item"
+            :menu="[{
+            label: '下一首播放',
+            icon: 'icon-Playlists-xiayishoubofang',
+        }, {
+            label: '添加到歌单',
+            icon: 'icon-shoucangdaogedan',
+        }, {
+            label: '下载',
+            icon: 'icon-xiazai',
+        },{
+            label: '删除',
+            icon: 'icon-shanchu',
+        }]">
+                <ul class="music-list">  
+                    <TransitionGroup name="list">           
+                        <li @click="handleClick(song)"
+                            class="music-item"
+                            v-for="(song, index) in musicList" 
+                            :key="song?.id">
+                            <div :class="{
+                                'song-index':currentIndex !== index,
+                                'song-index active':currentIndex === index
+                                }">{{ index + 1 }}</div>
+                            <div class="song-infos">
+                                <p class="song-name">{{ song?.name }}</p>
+                                <p class="song-author">{{ song?.ar.map(item => item.name).join('/') }}</p>
+                            </div> 
+                            <Loading1 v-if="currentIndex === index" class="loading-warp"></Loading1>                  
+                        </li>
+                    </TransitionGroup>
+                </ul>   
+        </ContextMenu>  
     </div>
 </template>
 
 <script setup>
 import Loading1 from './animations/Loading1.vue';
+import ContextMenu from './utils/ContextMenu.vue';
 import { useLocalStore } from '../store/localStore';
+import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
+import useThrottle from '../hooks/useThrottle'
 import { ref } from 'vue'
 const localStore = useLocalStore();
+const userStore = useUserStore()
 const { musicList, currentIndex } = storeToRefs(localStore);
-const handleClick = (song) => {
+const { isLogin, userInfo } = storeToRefs(userStore)
+const handleClick = useThrottle((song) => {
     if (!song) return;
     localStore.pushMusicToList(song)
+}, 500)
+const handleSelectClick = (dom,menuItem) => {
+    const index = parseInt(dom.children[0].innerText) - 1;
+    const track = musicList.value[index];
+    if (menuItem.label === '下一首播放') {
+        localStore.nextMusic(track)                
+    } else if (menuItem.label === '添加到歌单') {
+        if (!isLogin.value) {
+            console.log('请先登录');
+            return;
+        }
+        console.log('添加到歌单')
+    } else if (menuItem.label === '下载') {
+        console.log('下载')
+    } else if (menuItem.label === '删除') {
+        if (!isLogin.value) {
+            console.log('请先登录');
+            return;
+        }
+        if (userInfo.value.userId !== albumDetail.value.userId) {
+            console.log('不可删除别人歌单里的歌曲');
+            return;
+        }
+        console.log('删除')
+    }
 }
 </script>
 

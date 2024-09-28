@@ -161,6 +161,10 @@ const handleClickOutside = (event) => {
     const len = parentDom?.children.length
     const PopupDom = parentDom?.children[len-1]
     
+    if(event.target.classList.contains('menu-item')) {
+        return;
+    }
+    
     if (!parentDom) {
         isShowMusicListPopup.value = false
         return;
