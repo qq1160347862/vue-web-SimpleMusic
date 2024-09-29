@@ -2,8 +2,8 @@ import { defineStore } from "pinia";
 import { setActivePinia, createPinia } from 'pinia';
 import { useUserStore } from "./userStore";
 import { storeToRefs } from 'pinia';
-import { ref, shallowRef, toRefs } from "vue";
-import { getSongUrl, getLyric} from '@/request/musicApi/songs'
+import { ref, shallowRef, watch } from "vue";
+import { getSongUrl, getLyric, defaultSearchKey, getSearchSuggest, getHotSearch} from '@/request/musicApi/songs'
 import { getComments, getFloorComments, operateComment, likeComment } from "@/request/musicApi/comment";
 import useLyricParse from "../hooks/useLyricParse";
 const useLyric = useLyricParse()
@@ -36,6 +36,8 @@ export const useLocalStore = defineStore("local", () => {
     const trackSortType = ref(1)
     const albumComments = ref([])
     const albumSortType = ref(1)
+
+    const historySearch = ref(JSON.parse(localStorage.getItem("historySearch")) || [])
 
 
     // 音乐列表覆盖
@@ -329,6 +331,66 @@ export const useLocalStore = defineStore("local", () => {
         }
     }
 
+    // 获取默认搜索关键词
+    const getDefaultSearchKey = async () => {
+        try {
+            const res = await defaultSearchKey()
+            if(res.data.code !== 200){
+                throw new Error('获取默认搜索关键词失败',res.data.msg)
+            }
+            const keyWord = 
+                res.data.data.showKeyword ?
+                res.data.data.showKeyword :
+                res.data.data.realkeyword ?
+                res.data.data.realkeyword :
+                ''
+            return keyWord
+        } catch (error) {
+            console.log('获取默认搜索关键词失败', error)
+        }
+    }
+
+    // 获取热搜词
+    const getHotSearchKey = async () => {
+        try {
+            const res = await getHotSearch()
+            if(res.data.code !== 200){
+                throw new Error('获取热搜词失败',res.data.msg)
+            }
+            return res.data.result.hots
+        } catch (error) {
+            console.log('获取热搜词失败', error)
+        }
+    }
+
+    // 保存搜索历史
+    const saveSearchHistory = (key) => {
+        const index = historySearch.value.findIndex(item => item === key)
+        if(index !== -1) {
+            return
+        }
+        historySearch.value.unshift(key)
+        if(historySearch.value.length > 10) { // 最多保存10条搜索历史
+            historySearch.value.pop()
+        }      
+    }
+
+    // 获取搜索建议
+    const getSearchSuggestData = async (key) => {
+        try {
+            const res = await getSearchSuggest(key)
+            if(res.data.code !== 200){
+                throw new Error('获取搜索建议失败',res.data.msg)
+            }
+            return res.data.result.allMatch ? res.data.result.allMatch : []
+        } catch (error) {
+            console.log('获取搜索建议失败', error)
+        }
+    }
+
+    watch(historySearch, (newVal) => {
+        localStorage.setItem("historySearch", JSON.stringify(newVal));
+    }, { deep: true });
     return { 
         localPlayer,
         musicList, 
@@ -342,11 +404,12 @@ export const useLocalStore = defineStore("local", () => {
         isDragging,
         albumCaches, 
         maxCacheCount, 
+        total,
         trackSortType,
         trackComments,
-        total,
         albumComments,
         albumSortType,
+        historySearch,
         getTrackUrl, 
         getTrackLyric, 
         setMusicList, 
@@ -357,6 +420,10 @@ export const useLocalStore = defineStore("local", () => {
         getMoreComments,
         getFloorCommentsData,
         handleComment,
-        handleLikeComment
+        handleLikeComment,
+        getDefaultSearchKey,
+        getHotSearchKey,
+        saveSearchHistory,
+        getSearchSuggestData
      }
 })

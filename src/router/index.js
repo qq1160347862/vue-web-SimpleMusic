@@ -26,6 +26,11 @@ const router = createRouter({
         path: '/albumDetail/:id',
         name: 'AlbumDetail',
         component: () => import('@/views/AlbumDetail.vue')
+    },
+    {
+        path: '/search',
+        name: 'Search',
+        component: () => import('@/views/Search.vue')
     }
   ]
 })

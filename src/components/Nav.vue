@@ -10,9 +10,15 @@
                     <button @click="router.go(-1)"><i class="iconfont icon-left"></i></button>
                     <button @click="router.go(1)"><i class="iconfont icon-right"></i></button>
                 </div>
-                <Input v-model:input-value="inputText" 
-                @inputFunction="searchMusic" 
-                :clearable="true" placeholder="Type to search..." />
+                <div class="search-input-warp">
+                    <Input v-model:input-value="inputText" 
+                    :hotList="hotSearch" 
+                    :suggestList="suggestList" 
+                    v-model:history-list="historySearch" 
+                    @inputFunction="getSugguestions" 
+                    @submitFunction="searchMusic" 
+                    :clearable="true" :placeholder="placeholder" />
+                </div>                
             </div>
             <div class="user-warp" v-if="isLogin">
                 <div class="user-avator"
@@ -56,17 +62,29 @@ import Dialog from '../components/utils/Dialog.vue';
 import useNumberToTenThousand from '../hooks/useNumberToTenThousand'
 import qrImg from '../assets/images/user/avatar-default.png'
 import { useUserStore } from '@/store/userStore'
+import { useLocalStore } from '../store/localStore';
 import { storeToRefs } from 'pinia';
 
 const router = useRouter()
 const userStore = useUserStore()
+const localStore = useLocalStore()
 const { isLogin, userInfo } = storeToRefs(userStore)
+const { historySearch } = storeToRefs(localStore)
 const inputText = ref('')
+const placeholder = ref('Type to search...')
+const hotSearch = ref([])
+const suggestList = ref([])
 const showDialog = ref(false);
 const showQrImg = ref(false);
 const numberFormat = useNumberToTenThousand()
 const searchMusic = (e) => {
-    console.log(e,inputText.value)
+    // 记录搜索历史
+    localStore.saveSearchHistory(inputText.value)
+    // 跳转搜索页面
+    router.push({name: 'Search', query: {keywords: inputText.value}})
+}
+const getSugguestions = async (keyWord) => {
+    suggestList.value = await localStore.getSearchSuggestData(keyWord)
 }
 let imgDom = null
 let imgTextDom = null
@@ -89,9 +107,14 @@ const stopLogin = () => {
     showQrImg.value = false   
     imgTextDom.innerText = "二维码状态"; 
 }
-onMounted(() => { 
+onMounted(async () => { 
     imgDom = document.querySelector('#qrimg');
     imgTextDom = document.querySelector('.qrStatus');
+
+    // 获取默认搜索关键词
+    placeholder.value = await localStore.getDefaultSearchKey()
+    // 获取搜索热搜榜数据
+    hotSearch.value = await localStore.getHotSearchKey()
 })
 </script>
 
@@ -141,9 +164,14 @@ header {
 .func-warp {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    /* justify-content: space-between; */
     width: 600px;
     height: 100%;
+    margin-right: auto;
+}
+.search-input-warp {
+    position: relative;
+    margin-left: 48px;
     margin-right: auto;
 }
 .move-btn {

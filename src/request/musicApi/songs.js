@@ -25,7 +25,12 @@ export const defaultSearchKey = async () => {
   return musicApi.get("/search/default");
 }; 
 
+// 获取热门搜索
+export const getHotSearch = async () => {
+  return musicApi.get("/search/hot");
+}; 
+
 // 获取搜索建议
 export const getSearchSuggest = async (keywords) => {
-  return musicApi.get(`/search/suggest?keywords=${keywords}`)
+  return musicApi.get(`/search/suggest?keywords=${keywords}&type=mobile`)
 }; 
