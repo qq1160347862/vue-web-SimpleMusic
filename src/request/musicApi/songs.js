@@ -16,8 +16,8 @@ export const getLyric = async (id) => {
 }; 
 
 // 搜索歌曲
-export const searchSongs = async (keywords,limit,offset) => {
-  return musicApi.get(`/cloudsearch?keywords=${keywords}&limit=${limit}&offset=${offset}`)
+export const searchSongs = async (keywords,limit,offset,type) => {
+  return musicApi.get(`/cloudsearch?keywords=${keywords}&limit=${limit}&offset=${offset}&type=${type}`)
 }; 
 
 // 默认搜索关键词

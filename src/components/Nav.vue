@@ -12,6 +12,7 @@
                 </div>
                 <div class="search-input-warp">
                     <Input v-model:input-value="inputText" 
+                    v-model:search-type="searchType"
                     :hotList="hotSearch" 
                     :suggestList="suggestList" 
                     v-model:history-list="historySearch" 
@@ -72,6 +73,28 @@ const { isLogin, userInfo } = storeToRefs(userStore)
 const { historySearch } = storeToRefs(localStore)
 const inputText = ref('')
 const placeholder = ref('Type to search...')
+const searchType = ref([
+    {
+        label: '歌曲',
+        value: '1',
+        checked: true
+    },
+    {
+        label: '歌单',
+        value: '1000',
+        checked: false
+    },
+    {
+        label: '歌手',
+        value: '100',
+        checked: false
+    },
+    {
+        label: 'MV',
+        value:'1004',
+        checked: false
+    }
+])
 const hotSearch = ref([])
 const suggestList = ref([])
 const showDialog = ref(false);
@@ -81,7 +104,8 @@ const searchMusic = (e) => {
     // 记录搜索历史
     localStore.saveSearchHistory(inputText.value)
     // 跳转搜索页面
-    router.push({name: 'Search', query: {keywords: inputText.value}})
+    const type = searchType.value.find(item => item.checked).value
+    router.push({name: 'Search', query: {keywords: inputText.value, type}})
 }
 const getSugguestions = async (keyWord) => {
     suggestList.value = await localStore.getSearchSuggestData(keyWord)

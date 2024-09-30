@@ -4,26 +4,39 @@
             <i class="iconfont icon-sousuo"></i>
         </div>
         <input type="text" :placeholder="placeholder" 
-        
         :value="inputValue" @input="handleInput" :clearable="clearable">
         <span 
         :class="{'clear-icon':isShowClearIcon,'clear-icon-hidden':!isShowClearIcon}">
             <i class="iconfont icon-close" @click="handleClear"></i>
         </span>
-        <div class="suggest no-select" tabindex="-1" v-show="!isShowSuggest">
-            <h2 class="history-title">
+        <div class="suggest no-select" tabindex="-1">
+            <h2>搜索类型</h2>
+            <div class="searchType-warp">
+                <div class="type-list">
+                    <div @click.once="handleRadioChange(item.value)" v-for ="(item, index) in searchType" :key="index" class="radio-warp">
+                        <input 
+                            type="radio" 
+                            name="searchType" 
+                            :id="`searchType-${item.value}`" 
+                            :value="item.value" 
+                            :checked="item.checked">
+                        <label :for="`searchType-${item.value}`">{{ item.label }}</label>
+                    </div>
+                </div>
+            </div>
+            <h2 class="history-title" v-show="!isShowSuggest">
                 搜索历史
                 <span><i @click="clearHistoryList" class="iconfont icon-shanchu"></i></span>
             </h2>
-            <div class="history-warp">
+            <div class="history-warp" v-show="!isShowSuggest">
                 <TransitionGroup name="history-list" tag="ul" class="history-list">                    
                     <li v-for="(keyWord, index) in historyList" @click="formSubmit(keyWord)" :key="index">
                         {{ keyWord }}
                     </li>                    
                 </TransitionGroup>
             </div>
-            <h2>热搜榜</h2>
-            <div class="suggest-warp" v-hover="{
+            <h2 v-show="!isShowSuggest">热搜榜</h2>
+            <div v-show="!isShowSuggest" class="suggest-warp" v-hover="{
                 enterClass: 'show-scrollbar',
                 leaveClass: 'show-scrollbar',
             }">
@@ -33,15 +46,13 @@
                         {{ item.first }}
                     </li>
                 </ul>
-            </div>            
-        </div>
-        <div class="suggest no-select" tabindex="-1" v-show="isShowSuggest">
-            <h2>猜你想搜</h2>
-            <ul class="suggest-list">                
+            </div>
+            <h2 v-show="isShowSuggest">猜你想搜</h2>
+            <ul v-show="isShowSuggest" class="suggest-list">                
                 <li v-for="(item, index) in suggestList" @click="formSubmit(item.keyword)" :key="index">
                     {{ item.keyword }}
                 </li>
-            </ul>
+            </ul>            
         </div>
     </form>
     <div class="focusEle" tabindex="0"></div>
@@ -51,7 +62,13 @@
 import { computed, ref, toRefs, watch } from 'vue';
 import useDebounce from '../hooks/useDebounce'
 
-const emit = defineEmits(['update:inputValue','update:historyList', 'inputFunction', 'submitFunction'])
+const emit = defineEmits([
+    'update:inputValue',
+    'update:historyList', 
+    'inputFunction', 
+    'submitFunction',
+    'update:searchType'
+])
 const props = defineProps({
     inputValue: {
         type: String,
@@ -66,6 +83,10 @@ const props = defineProps({
         default: 'say something'
     },
     suggestList: {
+        type: Array,
+        default: () => []
+    },
+    searchType: {
         type: Array,
         default: () => []
     },
@@ -116,6 +137,17 @@ const formSubmit = (keyWord) => {
 }
 const clearHistoryList = () => {
     emit('update:historyList', [])
+}
+const handleRadioChange = (value) => {
+    const searchType = props.searchType.map(item => {
+        if(item.value === value){
+            item.checked = true
+        }else{
+            item.checked = false
+        }
+        return item
+    })
+    emit('update:searchType', searchType)
 }
 </script>
 
@@ -195,35 +227,23 @@ const clearHistoryList = () => {
     font-size: 14px;
     color: #2b2b2b;
 }
-.history-title {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.history-title .iconfont {
-    font-size: 16px;
-    color: #696969;
-    cursor: pointer;
-}
+.searchType-warp,
 .history-warp {
     width: 100%;
 }
-.history-list-enter-active,
-.history-list-leave-active {
-    transition: all 0.3s ease-in-out;
-}
-.history-list-enter,
-.history-list-leave-to {
-    opacity: 0;
-    transform: scale(0.8);
-}
+.type-list,
 .history-list {
     padding: 0 8px;
     display: flex;
     flex-wrap: wrap;
 }
+.type-list input[type="radio"] {
+    display: none;
+}
+
+.type-list .radio-warp,
 .history-list li {
-    margin: 8px 8px 0 0;
+    margin: 0 8px 0 0;
     height: 24px;
     line-height: 24px;
     text-align: center;
@@ -237,9 +257,35 @@ const clearHistoryList = () => {
     white-space: nowrap;
     overflow: hidden;
 }
+.type-list .radio-warp:hover,
 .history-list li:hover {
     background-color: #d8d8d8;
 }
+.type-list .radio-warp:has(input[type="radio"]:checked) {
+    background-color: #2b2b2b;
+    color: #fff;
+}
+.history-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.history-title .iconfont {
+    font-size: 16px;
+    color: #696969;
+    cursor: pointer;
+}
+.history-list-enter-active,
+.history-list-leave-active {
+    transition: all 0.3s ease-in-out;
+}
+.history-list-enter,
+.history-list-leave-to {
+    opacity: 0;
+    transform: scale(0.8);
+}
+
+
 .hot-list,
 .suggest-list {
     display: flex;

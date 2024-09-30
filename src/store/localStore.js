@@ -3,11 +3,11 @@ import { setActivePinia, createPinia } from 'pinia';
 import { useUserStore } from "./userStore";
 import { storeToRefs } from 'pinia';
 import { ref, shallowRef, watch } from "vue";
-import { getSongUrl, getLyric, defaultSearchKey, getSearchSuggest, getHotSearch} from '@/request/musicApi/songs'
+import { getSongUrl, getLyric, defaultSearchKey, getSearchSuggest, getHotSearch, searchSongs} from '@/request/musicApi/songs'
 import { getComments, getFloorComments, operateComment, likeComment } from "@/request/musicApi/comment";
 import useLyricParse from "../hooks/useLyricParse";
 const useLyric = useLyricParse()
-// 通过使用setActivePinia来激活Pinia仓库，因为pinia的创建是在app.mount之后的
+// 通过使用setActivePinia来激活Pinia仓库，因为pinia的创建是在app.mount之后的 
 setActivePinia(createPinia())
 const userStore = useUserStore()
 const { isLogin, cookie } = storeToRefs(userStore)
@@ -388,6 +388,48 @@ export const useLocalStore = defineStore("local", () => {
         }
     }
 
+    // 搜索资源
+    const searchResource = async ({keywords, limit, offset, type}) => {
+        try {
+            const res = await searchSongs(keywords, limit, offset, type)
+            if(res.data.code !== 200){
+                throw new Error('搜索资源失败',res.data.msg)
+            }
+            switch(type){
+                case 1:
+                    return {
+                        songs: res.data.result.songs,
+                        songCount: res.data.result.songCount,
+                    };
+                case 10:
+                    return;
+                case 100:
+                    return;
+                case 1000:
+                    return;
+                case 1002:
+                    return;
+                case 1004:
+                    return;
+                case 1006:
+                    return;
+                case 1009:
+                    return;
+                case 1014:
+                    return;
+                case 1018:
+                    return;
+                case 2000:
+                    return;
+                default:
+                    console.error('无效的搜索类型')
+                    break;
+            }            
+        }catch(err) {
+            console.log('搜索资源失败',err)
+        }
+    }
+
     watch(historySearch, (newVal) => {
         localStorage.setItem("historySearch", JSON.stringify(newVal));
     }, { deep: true });
@@ -424,6 +466,7 @@ export const useLocalStore = defineStore("local", () => {
         getDefaultSearchKey,
         getHotSearchKey,
         saveSearchHistory,
-        getSearchSuggestData
+        getSearchSuggestData,
+        searchResource
      }
 })

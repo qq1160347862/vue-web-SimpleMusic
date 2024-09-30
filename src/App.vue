@@ -7,7 +7,8 @@
       <main>
         <!-- <header>{{ route.name }}</header> -->
         <router-view v-slot="{ Component }">
-          <KeepAlive :max="10" exclude="AlbumDetail">
+          <!-- exclude不能有空格 -->
+          <KeepAlive :max="10" exclude="AlbumDetail,Search">
             <component :is="Component" />
           </KeepAlive>
         </router-view>
