@@ -12,6 +12,7 @@
     --logo-icon-size: 32px;
     --logo-text-size: 1.8em;
 
+    --main-left-padding: 8px;
 
     --aside-menu1-func-col-n: 2;
     --aside-menu1-func-gap: calc((100% - 48px * var(--aside-menu1-func-col-n)) / var(--aside-menu1-func-col-n) / 2);

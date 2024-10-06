@@ -1,6 +1,6 @@
 <template>
     <a class="button-shell" ref="btnRef" :style="customStyle" :href="redirect" :target="isRedirected? '_blank' : ''">
-        <span>
+        <span class="no-select">
             <slot name="text"></slot>
         </span>
         <div class="anime-bg"></div>

@@ -1,7 +1,7 @@
 <template>
     <nav>
         <header>
-            <div class="h1">
+            <div class="h1 no-select">
                 <i class="iconfont icon-music-circle"></i>
                 <h1>music</h1>
             </div>

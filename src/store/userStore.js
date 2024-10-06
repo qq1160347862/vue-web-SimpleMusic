@@ -1,12 +1,14 @@
 import { defineStore } from "pinia";
 import { ref, watch } from "vue";
 import { getQrcode, getQrcodeImg, checkQrcode, getLoginStatus, logout } from "../request/musicApi/login";
-import { getUserDetail } from "../request/musicApi/user";
+import { getUserDetail, getUserPlaylist } from "../request/musicApi/user";
 let loginTimer = null;
 export const useUserStore = defineStore("user", () => {
     const isLogin = ref(JSON.parse(localStorage.getItem("isLogin") || false));
     const userInfo = ref(JSON.parse(localStorage.getItem("userInfo") || null));
     const cookie = ref(JSON.parse(localStorage.getItem("cookie") || null));
+
+    const userPlayList = ref([]);
 
     // 该函数用于处理二维码登录流程
     // 参数:
@@ -57,6 +59,21 @@ export const useUserStore = defineStore("user", () => {
     const abortLogin = () => {
         clearInterval(loginTimer)
     }
+
+    const getUserPlayListData = async () => {
+        const res = await getUserPlaylist(
+            userInfo.value.profile.userId, 
+            null, 
+            null,
+            cookie.value
+        );
+        if(res.data.code !== 200){
+            console.log(res.data.message)
+            return
+        }
+        userPlayList.value = res.data.playlist
+    }
+
     watch(isLogin, (newVal) => {
         localStorage.setItem("isLogin", JSON.stringify(newVal));
     }, { deep: true });
@@ -68,5 +85,13 @@ export const useUserStore = defineStore("user", () => {
     watch(cookie, (newVal) => {
         localStorage.setItem("cookie", JSON.stringify(newVal));
     },{ deep: true });
-    return { isLogin, userInfo, cookie, qrLogin, abortLogin }
+    return { 
+        isLogin, 
+        userInfo, 
+        cookie,
+        userPlayList, 
+        qrLogin, 
+        abortLogin,
+        getUserPlayListData
+     }
 })

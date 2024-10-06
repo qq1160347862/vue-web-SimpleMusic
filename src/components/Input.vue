@@ -28,7 +28,10 @@
                 搜索历史
                 <span><i @click="clearHistoryList" class="iconfont icon-shanchu"></i></span>
             </h2>
-            <div class="history-warp" v-show="!isShowSuggest">
+            <div class="history-warp" v-show="!isShowSuggest" v-hover="{
+                enterClass: 'show-scrollbar',
+                leaveClass: 'show-scrollbar',
+            }">
                 <TransitionGroup name="history-list" tag="ul" class="history-list">                    
                     <li v-for="(keyWord, index) in historyList" @click="formSubmit(keyWord)" :key="index">
                         {{ keyWord }}
@@ -106,15 +109,15 @@ const isShowClearIcon = computed(() => {
 const isShowSuggest = computed(() => {
     return inputValue.value.trim().length > 0
 })
-const handleInput = useDebounce((event)=>{
+const handleInput = (event)=>{
     emit('update:inputValue', event.target.value)
-}, 200)
-watch(inputValue, (newValue) => {
+}
+watch(inputValue, useDebounce((newValue) => {
     if(newValue.trim().length > 0) {
         // 有输入内容才触发 inputFunction 事件
         emit('inputFunction', newValue)
     }  
-})
+}, 500))
 const handleClear = () => {
     emit('update:inputValue', '')
     const inputDom = document.querySelector('.search input')
@@ -231,6 +234,11 @@ const handleRadioChange = (value) => {
 .history-warp {
     width: 100%;
 }
+.history-warp {
+    overflow-y: scroll;
+    min-height: 36px;
+    max-height: 480px;
+}
 .type-list,
 .history-list {
     padding: 0 8px;
@@ -256,6 +264,9 @@ const handleRadioChange = (value) => {
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
+}
+.history-list li {
+    margin-bottom: 12px;
 }
 .type-list .radio-warp:hover,
 .history-list li:hover {
@@ -362,4 +373,20 @@ const handleRadioChange = (value) => {
 .suggest-warp.show-scrollbar::-webkit-scrollbar-thumb:hover{
     background: var(--main-scrollbal-thumb-hover-bg-color); /* 滚动条滑块悬停颜色 */
 }
+
+.history-warp.show-scrollbar::-webkit-scrollbar {
+    width: 4px; /* 滚动条宽度 */
+}
+.history-warp.show-scrollbar::-webkit-scrollbar-track {
+    background: var(--main-scrollbal-track-bg-color); /* 滚动条轨道背景色 */
+    border-radius: 2px;
+}
+.history-warp.show-scrollbar::-webkit-scrollbar-thumb{
+    background: var(--main-scrollbal-thumb-bg-color); /* 滚动条滑块颜色 */
+    border-radius: 2px;
+}
+.history-warp.show-scrollbar::-webkit-scrollbar-thumb:hover{
+    background: var(--main-scrollbal-thumb-hover-bg-color); /* 滚动条滑块悬停颜色 */
+}
+
 </style>

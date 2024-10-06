@@ -93,7 +93,7 @@ onMounted(async () => {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-left: 8px;
+    padding-left: var(--main-left-padding);
     width: 100%;
     height: 100%;  
 }

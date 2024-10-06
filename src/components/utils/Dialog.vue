@@ -1,17 +1,19 @@
 <template>
-    <dialog :id="id" class="dialog" :style="customStyle">
-        <div class="dialog-container">
-            <div class="dialog-header">
-                <h2><slot name="title"></slot></h2>                
-            </div>
-            <div class="dialog-body">
-                <slot name="content"></slot>
+    <Teleport to="body">
+        <dialog :id="id" class="dialog no-select" :style="customStyle">
+            <div class="dialog-container">
+                <div class="dialog-header">
+                    <h2><slot name="title"></slot></h2>                
+                </div>
+                <div class="dialog-body">
+                    <slot name="content"></slot>
+                </div>            
+                <div class="dialog-close">
+                    <a @click.stop="closeDialog"><i class="iconfont icon-close"></i></a>        
+                </div>
             </div>            
-        </div>
-        <div class="dialog-close">
-            <a @click.stop="closeDialog"><i class="iconfont icon-close"></i></a>        
-        </div>
-    </dialog> 
+        </dialog> 
+    </Teleport>    
 </template>
 
 <script setup>
@@ -53,6 +55,11 @@ const closeDialog = () => {
     emit('handleClose');
     emit('update:modelValue', false);
     const dialogElement = document.getElementById(id);
+    if(type ==='modal'){
+        dialogElement.close();
+        dialogElement.classList.remove('modal');
+        return
+    }
     dialogElement.close()
 };
 const customStyle = computed(() => {
@@ -71,33 +78,34 @@ const customStyle = computed(() => {
 
 <style scoped>
 .dialog {
-    margin: 0 auto;
-    padding: 16px;
-    background-color: var(--dialog-bg-color);
-    backdrop-filter: blur(10px);
-    box-shadow: var(--dialog-shadow);
-    border: none;
-    border-radius: 8px;
-    transition: all 0.3s ease-in-out;
-    opacity: 1;
-    transform: translateY(24vh);
-}
-.dialog.modal {
-    transform: translateY(24vh);
-    transition: none;
-}
-.dialog:not([open]){
+    position: fixed;
+    margin: auto;
+    inset: 0;
+    width: fit-content;
+    height: fit-content;
     display: block;
+    border: none;    
+    background-color: transparent;
+    outline: none;
+    visibility: hidden;
     opacity: 0;
-    transform: translateY(calc(24vh - 24px));
-    visibility: hidden;    
+    transform: translateY(-75%) scale(0.8);
+    transition: .2s;
     pointer-events: none;
 }
-.dialog::backdrop {
-    background-color: var(--dialog-modal-mask-bg-color);
+.dialog[open] {    
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(-75%) scale(1);
+    pointer-events: auto;
+}
+
+.dialog.modal::backdrop {
+    background: var(--dialog-modal-mask-bg-color);
     backdrop-filter: blur(10px);
 }
 .dialog-container {
+    padding: 16px 64px;
     position: relative;
     display: flex;
     flex-direction: column;
@@ -106,8 +114,11 @@ const customStyle = computed(() => {
     width: 100%;
     height: 100%;
     overflow: hidden;
-    cursor: default;
-
+    cursor: default;    
+    box-shadow: var(--dialog-shadow);
+    border-radius: 8px;
+    background-color: var(--dialog-bg-color);
+    backdrop-filter: blur(10px);
 }
 .dialog-header h2 {
     font-size: 16px;
@@ -132,8 +143,6 @@ const customStyle = computed(() => {
     cursor: pointer;
     line-height: 16px;
     border-radius: 50%;
-    transition: all 0.3s ease-in-out;
-    
 }
 .dialog-close:hover {
     box-shadow: var(--dialog-close-btn-hover-shadow)
@@ -142,7 +151,7 @@ const customStyle = computed(() => {
     font-size: 16px;
     font-weight: bold;
     color: var(--dialog-close-color);
-    transition: all 0.3s ease-in-out;
+    transition: all 0.2s ;
 }
 .dialog-close:hover a .iconfont{
     color: var(--dialog-close-hover-color);

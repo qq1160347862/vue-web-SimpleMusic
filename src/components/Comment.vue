@@ -861,29 +861,13 @@ input::placeholder {
     background-color: #0e8aff;
 }
 
-
-
-/* loading动画 */
 .ring,
 .sub-ring {
-    margin: 0 auto;
     margin-bottom: 56px;
-    width: 24px;
-    height: 24px;
-    border: 6px rgb(255 74 105 / 25%) solid;
-    border-top: 6px #ff4a69 solid;
-    border-radius: 50%;
-    animation: spin 0.6s infinite linear;
 }
 .sub-ring {
     margin-bottom: 12px;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 
 
 /* 滚动条默认隐藏 */

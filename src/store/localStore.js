@@ -74,8 +74,10 @@ export const useLocalStore = defineStore("local", () => {
             const lyric = await getTrackLyric(track.id)            
             track.url = url
             track.lyric = lyric
-            musicList.value.push(track)
-            currentIndex.value = musicList.value.length - 1
+            // musicList.value.push(track)
+            // currentIndex.value = musicList.value.length - 1
+            musicList.value.unshift(track)
+            currentIndex.value = 0
             await getCommentsData({
                 id: musicList.value[currentIndex.value].id, 
                 type: 0, 
@@ -100,7 +102,7 @@ export const useLocalStore = defineStore("local", () => {
         
         // 避免一首歌的评论多次请求
         currentIndex.value = index
-        if(oldIndex === currentIndex.value) return;
+        
         await getCommentsData({
             id: musicList.value[currentIndex.value].id, 
             type: 0, 

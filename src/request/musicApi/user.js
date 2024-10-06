@@ -12,3 +12,22 @@ export const getUserDetail = async (id) => {
         return await Promise.reject(err);
     }
 };
+
+// 获取用户歌单
+export const getUserPlaylist = async (id, limit = 30, offset = 0, cookie = "") => {
+    try {
+        let url = `/user/playlist?uid=${id}&timestamp=${getTimestamp()}`
+        if (limit) {
+            url += `&limit=${limit}`;
+        }
+        if (offset) {
+            url += `&offset=${offset}`;
+        }
+        return await musicApi.post(url,{
+            cookie
+        });
+    } catch (err) {
+        console.log("Error fetching user playlist", err);
+        return await Promise.reject(err);
+    }    
+};

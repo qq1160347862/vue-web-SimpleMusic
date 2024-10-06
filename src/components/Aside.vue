@@ -1,6 +1,6 @@
 <template>  
     <aside>
-        <ul class="menu1">
+        <ul class="menu1 no-select">
             <li class="menu1-item">
                 <h2>发现音乐</h2>
                 <ul class="menu2">
@@ -24,7 +24,7 @@
                     <li @click="router.push('/download')" :class="{'menu2-item active':route.name==='Download','menu2-item':route.name!=='Download'}">
                         <a><i class="iconfont icon-xiazai"></i><span>下载</span></a>
                     </li>
-                    <li @click="router.push('/myMusicList')" :class="{'menu2-item active':route.name==='MyMusicList','menu2-item':route.name!=='MyMusicList'}">
+                    <li @click="router.push('/localPlayList')" :class="{'menu2-item active':route.name==='MyMusicList','menu2-item':route.name!=='MyMusicList'}">
                         <a><i class="iconfont icon-20gl-videoAlbum"></i><span>我的歌单</span></a>
                     </li>
                     <li class="menu2-item">

@@ -4,7 +4,6 @@ const iObserver = new IntersectionObserver((entries) => {
         if (entry.isIntersecting) {
             const img = entry.target;
             img.src = img.dataset.src;
-            img.classList.remove('lazy');
             iObserver.unobserve(img);
         }
     });
@@ -17,7 +16,6 @@ const iObserver = new IntersectionObserver((entries) => {
 export default {
     mounted(el, binding) {
         const imgDoms = el.querySelectorAll('img.lazy');
-        if (imgDoms.length === 0) return;
         lazyImages = [...imgDoms];
         lazyImages.forEach((img) => {
             iObserver.observe(img);
@@ -25,15 +23,13 @@ export default {
     },
     updated(el, binding) {
         const imgDoms = el.querySelectorAll('img.lazy');
-        if (imgDoms.length === 0) return;
         lazyImages = [...imgDoms];
         lazyImages.forEach((img) => {
             iObserver.observe(img);
-        });
+        }); 
     },
     unMounted(el, binding) {
         iObserver.disconnect();
-        if (lazyImages.length === 0) return;
         lazyImages.forEach((img) => {
             iObserver.unobserve(img);
         });        

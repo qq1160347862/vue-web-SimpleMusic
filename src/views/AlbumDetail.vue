@@ -50,6 +50,15 @@
                         </div>                
                     </div>                
                 </div>
+                <div class="playList-caption no-select">
+                    <ul>
+                        <li>#</li>
+                        <li>标题</li>
+                        <li>专辑</li>
+                        <li>时长</li>
+                        <li>MV</li>
+                    </ul>
+                </div>
                 <div class="playList-tracks-warp no-select" v-hover="{
                         enterClass: 'show-scrollbar',
                         leaveClass: 'show-scrollbar',
@@ -77,13 +86,23 @@
                                     v-for="(track, index) in albumTracks" 
                                     :key="track?.id">
                                     <div class="track-index">{{ index + 1}}</div>
-                                    <div class="track-infos">
-                                        <p class="track-name">{{ track?.name }}</p>
-                                        <p class="track-author">{{ track?.ar.map(item => item.name).join('/') }}</p>
+                                    <div class="track-infos" v-lazy>
+                                        <img src="" :data-src="track?.al.picUrl" class="lazy" alt="">
+                                        <div>
+                                            <p class="track-name">{{ track?.name }}</p>
+                                            <p class="track-author">{{ track?.ar.map(item => item.name).join('/') }}</p>
+                                        </div>                                        
+                                    </div>
+                                    <div class="track-album">
+                                        <p>{{ track.ar.map(item => item.name).join('/') }}</p>
+                                    </div>
+                                    <div class="track-duration">
+                                        {{ formatTime(track.dt / 1000) }}
                                     </div>
                                     <div class="track-mv" v-if="track?.mv && track?.mv !== 0">
                                         <i @click.stop="handleMvClick(track.mv)" class="iconfont icon-mv"></i>
-                                    </div>                        
+                                    </div>
+                                    <div class="track-mv hide" v-else></div>                        
                                 </li>
                             </TransitionGroup>                    
                         </ul>
@@ -125,6 +144,7 @@ import { useLocalStore } from '@/store/localStore';
 import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
 import useNumberToTenThousand from '../hooks/useNumberToTenThousand';
+import useSecondsToMinute from '@/hooks/useSecondsToMinute';
 import useDateFormat from '@/hooks/useDateFormat'
 import useThrottle from '../hooks/useThrottle'
 const route = useRoute()
@@ -132,6 +152,7 @@ const message = inject('message')
 const localStore = useLocalStore()
 const userStore = useUserStore()
 const formatNumber = useNumberToTenThousand()
+const formatTime = useSecondsToMinute();
 const formatDate = useDateFormat()
 const {
     albumCaches, 
@@ -143,7 +164,7 @@ const { isLogin, userInfo } = storeToRefs(userStore)
 const albumId = route.params.id
 const albumDetail = shallowRef(null)
 const albumTracks = shallowRef(null)
-const delay = 2000
+const delay = 500
 const showComment = ref(false)
 const pageSize = ref(10)
 const pageNo = ref(1)
@@ -289,6 +310,42 @@ onMounted( async () => {
     justify-content: flex-start;
     gap: 8px;
 }
+.playList-caption {
+    width: 100%;
+    margin: 2px 0;
+}
+.playList-caption ul {
+    display: flex;
+    align-items: center;
+    /* justify-content: space-around; */
+    font-size: 12px;
+    background-color: #ffffffa8;
+    border-radius: var(--border-radius-light);
+    color: #999;
+    padding: 0 12px;
+}
+.playList-caption ul li {
+    padding: 4px 0;
+    cursor: pointer;
+}
+.playList-caption ul li:nth-child(1) {
+    width: 16px;
+    margin-right: 16px;
+}
+.playList-caption ul li:nth-child(2) {
+    width: 240px;
+}
+.playList-caption ul li:nth-child(3) {
+    width: 240px;
+}
+.playList-caption ul li:nth-child(4) {
+    width: 120px;
+}
+.playList-caption ul li:nth-child(5) {
+    width: 32px;
+    margin-left: auto;
+    margin-right: 32px;
+}
 .playList-infos-warp {
     width: 100%;
     border-radius: 16px;
@@ -431,16 +488,57 @@ onMounted( async () => {
     background: #ffffff;
 }
 .track-index {
-    font-size: 14px;
+    font-size: 12px;
     color: #999;
     margin-right: 16px;
+    width: 16px;
+    pointer-events: none;
 }
 .track-infos {
     display: flex;
+    /* justify-content: center;    */
+    align-items: center; 
+    width: 240px;    
+    pointer-events: none;
+}
+.track-infos img {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: cover;
+    margin-right: 8px;
+}
+.track-infos div {
+    flex-grow: 1;
+    display: flex;
     flex-direction: column;
     justify-content: center;
+    align-items: flex-start;
+    gap: 4px;
 }
-.track-mv {
+.track-album,
+.track-duration {
+    display: flex;
+    align-items: center;
+    font-size: 12px;
+    color: #999;    
+    pointer-events: none;
+}
+.track-album {
+    width: 240px;
+}
+.track-duration {
+    width: 120px;
+}
+.track-album p,
+.track-duration p {
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.track-mv,
+.track-mv.hide {
     width: 32px;
     height: 32px;
     border-radius: 50%;
@@ -455,6 +553,10 @@ onMounted( async () => {
     cursor: pointer;
     transition: all 0.2s linear;
 }
+.track-mv.hide {
+    opacity: 0;
+    pointer-events: none;
+}
 .track-mv:hover {
     background-color: #f50057;
     color: #fff;
@@ -463,6 +565,9 @@ onMounted( async () => {
     font-size: 24px;
 }
 .track-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     font-size: 12px;
     font-weight: bold;
     color: #333;
