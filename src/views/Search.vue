@@ -65,7 +65,7 @@ const total = ref(0);
 const formatTime = useSecondsToMinute();
 
 const addToPlayList = (song) => {
-    localStore.pushMusicToList(song);
+    localStore.addMusicToList(song, 'current');
 }
 
 const nextPlay = (song) => {

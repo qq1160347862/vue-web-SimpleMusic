@@ -56,7 +56,7 @@ const discoverAlbumList = ref([])
 const recommendAlbumList = ref([])
 
 const redirectToAlbum = (albumId) => {
-    router.push({ name: 'AlbumDetail', params: { id: albumId } })
+    router.push({ name: 'AlbumDetail', params: { id: albumId, location: 'online' } })
 }
 
 onMounted(async () => {

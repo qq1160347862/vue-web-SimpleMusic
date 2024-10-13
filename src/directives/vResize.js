@@ -23,6 +23,8 @@ export default {
 
     unMounted(el, binding) {
         // 停止监听元素的大小变化
+        console.log('unMounted');
+        
         ob.unobserve(el);
     }
 };

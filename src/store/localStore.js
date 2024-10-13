@@ -6,6 +6,12 @@ import { ref, shallowRef, watch } from "vue";
 import { getSongUrl, getLyric, defaultSearchKey, getSearchSuggest, getHotSearch, searchSongs} from '@/request/musicApi/songs'
 import { getComments, getFloorComments, operateComment, likeComment } from "@/request/musicApi/comment";
 import useLyricParse from "../hooks/useLyricParse";
+
+const HISTORYSEARCH = "historySearch"
+const LOCALPLAYLIST = "localPlayList"
+const LOCALTAGS = "localTags"
+
+
 const useLyric = useLyricParse()
 // 通过使用setActivePinia来激活Pinia仓库，因为pinia的创建是在app.mount之后的 
 setActivePinia(createPinia())
@@ -29,7 +35,7 @@ export const useLocalStore = defineStore("local", () => {
     //     tracks: null
     // }]
     const albumCaches = shallowRef([]);
-    const maxCacheCount = ref(2);
+    const maxCacheCount = ref(10);
 
     const total = ref(0)
     const trackComments = ref([])    
@@ -37,7 +43,9 @@ export const useLocalStore = defineStore("local", () => {
     const albumComments = ref([])
     const albumSortType = ref(1)
 
-    const historySearch = ref(JSON.parse(localStorage.getItem("historySearch")) || [])
+    const historySearch = ref(JSON.parse(localStorage.getItem(HISTORYSEARCH)) || [])
+    const localPlayList = ref(JSON.parse(localStorage.getItem(LOCALPLAYLIST)) || [])
+    const localTags = ref(JSON.parse(localStorage.getItem(LOCALTAGS)) || [])
 
 
     // 音乐列表覆盖
@@ -59,11 +67,10 @@ export const useLocalStore = defineStore("local", () => {
         })    
     }
 
-    // 添加音乐至列表末尾(播放)
-    const pushMusicToList = async (track) => {
+    // 添加音乐至列表
+    const addMusicToList = async (track, location = 'end') => {
 
         isPlaying.value = true
-        const oldIndex = currentIndex.value                
         const index = musicList.value.findIndex((item) => {
             return item.id === track.id
         })
@@ -74,10 +81,19 @@ export const useLocalStore = defineStore("local", () => {
             const lyric = await getTrackLyric(track.id)            
             track.url = url
             track.lyric = lyric
-            // musicList.value.push(track)
-            // currentIndex.value = musicList.value.length - 1
-            musicList.value.unshift(track)
-            currentIndex.value = 0
+
+            if(location === 'end') {
+                musicList.value.push(track)
+                currentIndex.value = musicList.value.length - 1
+            }else if (location === 'current') {
+                musicList.value.splice(currentIndex.value + 1, 0, track)
+                currentIndex.value = currentIndex.value + 1
+            }else if (location === 'start') {
+                musicList.value.unshift(track)
+                currentIndex.value = 0
+            }else {
+                console.error('无效的位置参数')
+            }
             await getCommentsData({
                 id: musicList.value[currentIndex.value].id, 
                 type: 0, 
@@ -87,29 +103,7 @@ export const useLocalStore = defineStore("local", () => {
             })
             return
         }
-
-        // 歌曲已存在，切换至已存在的歌曲
-        const target = musicList.value[index]   // 获得目标歌曲
-        if(!target.url) {
-            const url = await getTrackUrl(target.id)
-            target.url = url
-        }      
-
-        if(!target.lyric) {
-            const lyric = await getTrackLyric(target.id)
-            target.lyric = lyric
-        }
-        
-        // 避免一首歌的评论多次请求
-        currentIndex.value = index
-        
-        await getCommentsData({
-            id: musicList.value[currentIndex.value].id, 
-            type: 0, 
-            sortType: trackSortType.value, 
-            pageSize: 20, 
-            pageNo: 1, 
-        })                      
+        currentIndex.value = index            
         return
     }
 
@@ -132,7 +126,8 @@ export const useLocalStore = defineStore("local", () => {
                 if (index !== currentIndex.value) { // 目标歌曲不为当前歌曲
                     if(index < currentIndex.value) {
                         musicList.value.splice(index, 1); // 删除目标歌曲
-                        musicList.value.splice(currentIndex.value, 0, target); // 插入至当前歌曲前
+                        musicList.value.splice(currentIndex.value, 0, target); // 插入至当前歌曲前                        
+                        currentIndex.value = currentIndex.value - 1; // 调整当前索引
                         console.log('歌曲已存在，将在播放完当前歌曲后播放');
                         return;
                     }
@@ -156,30 +151,26 @@ export const useLocalStore = defineStore("local", () => {
             return msg;
         }
 
-        const oldIndex = currentIndex.value
+        const oldIndex = currentIndex.value;
         // 更新当前索引
         switch (loop.value) {
-            case 0:
+            case 0:        
                 localPlayer.value.currentTime = 0; // 重置播放时间
-                localPlayer.value.play()
+                localPlayer.value.play()        
                 break;
             case 1:       
-            currentIndex.value = (currentIndex.value + step + musicList.value.length) % musicList.value.length; // 顺序播放         
-                if(oldIndex === currentIndex.value) {
+                currentIndex.value = (currentIndex.value + step + musicList.value.length) % musicList.value.length; // 顺序播放  
+                if (oldIndex === currentIndex.value) {
                     localPlayer.value.currentTime = 0; // 重置播放时间
-                    localPlayer.value.play()
-                    return;
-                }                
-                pushMusicToList(musicList.value[currentIndex.value]) 
+                    localPlayer.value.play()   
+                }                                                      
                 break;
             case 2:
-                currentIndex.value = Math.floor(Math.random() * musicList.value.length); // 随机播放
-                if(oldIndex === currentIndex.value) {
+                currentIndex.value = Math.floor(Math.random() * musicList.value.length); // 随机播放   
+                if (oldIndex === currentIndex.value) {
                     localPlayer.value.currentTime = 0; // 重置播放时间
-                    localPlayer.value.play()
-                    return;
-                }
-                pushMusicToList(musicList.value[currentIndex.value]) 
+                    localPlayer.value.play()   
+                }             
                 break;
             default:
                 console.error("无效的播放模式。");
@@ -432,9 +423,47 @@ export const useLocalStore = defineStore("local", () => {
         }
     }
 
+
+    watch(currentIndex, async (newVal, oldVal) => {
+        if(newVal !== -1) {
+            isPlaying.value = true
+            const track = musicList.value[newVal]
+            if(!track.url) {
+                const url = await getTrackUrl(track.id)
+                track.url = url
+            }
+            if(!track.lyric) {
+                const lyric = await getTrackLyric(track.id)
+                track.lyric = lyric
+            }
+            await getCommentsData({
+                id: musicList.value[currentIndex.value].id, 
+                type: 0, 
+                sortType: trackSortType.value, 
+                pageSize: 20, 
+                pageNo: 1, 
+            }) 
+        }
+    })
+    watch(isPlaying, (newVal) => {
+        if(newVal) {
+            localPlayer.value.play()
+        } else {
+            localPlayer.value.pause()
+        }
+    })
+
+
     watch(historySearch, (newVal) => {
-        localStorage.setItem("historySearch", JSON.stringify(newVal));
+        localStorage.setItem(HISTORYSEARCH, JSON.stringify(newVal));
     }, { deep: true });
+    watch(localPlayList, (newVal) => {
+        localStorage.setItem(LOCALPLAYLIST, JSON.stringify(newVal));
+    }, { deep: true });
+    watch(localTags, (newVal) => {
+        localStorage.setItem(LOCALTAGS, JSON.stringify(newVal));
+    }, { deep: true });
+    
     return { 
         localPlayer,
         musicList, 
@@ -454,10 +483,12 @@ export const useLocalStore = defineStore("local", () => {
         albumComments,
         albumSortType,
         historySearch,
+        localPlayList,
+        localTags,
         getTrackUrl, 
         getTrackLyric, 
         setMusicList, 
-        pushMusicToList,
+        addMusicToList,
         nextMusic,
         switchMusic,
         getCommentsData,

@@ -19,9 +19,10 @@
             label: '删除',
             icon: 'icon-shanchu',
         }]">
-                <ul class="music-list">  
+                <ul class="music-list" v-dragger="musicList">  
                     <TransitionGroup name="list">           
                         <li @click="handleClick(song)"
+                            draggable="true"
                             class="music-item"
                             v-for="(song, index) in musicList" 
                             :key="song?.id">
@@ -55,7 +56,7 @@ const { musicList, currentIndex } = storeToRefs(localStore);
 const { isLogin, userInfo } = storeToRefs(userStore)
 const handleClick = useThrottle((song) => {
     if (!song) return;
-    localStore.pushMusicToList(song)
+    localStore.addMusicToList(song, 'current')
 }, 500)
 const handleSelectClick = (dom,menuItem) => {
     const index = parseInt(dom.children[0].innerText) - 1;
@@ -123,10 +124,14 @@ const handleSelectClick = (dom,menuItem) => {
 .music-list .music-item:hover {
     background: #ffffff;
 }
+.music-list .music-item.dragging {
+    opacity: 0;
+}
 .song-index {
     font-size: 14px;
     color: #999;
     margin-right: 16px;
+    pointer-events: none;
 }
 .song-index.active {
     color: red;
@@ -135,6 +140,7 @@ const handleSelectClick = (dom,menuItem) => {
     display: flex;
     flex-direction: column;
     justify-content: center;
+    pointer-events: none;
 }
 .song-name {
     font-size: 12px;

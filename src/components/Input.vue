@@ -4,7 +4,9 @@
             <i class="iconfont icon-sousuo"></i>
         </div>
         <input type="text" :placeholder="placeholder" 
-        :value="inputValue" @input="handleInput" :clearable="clearable">
+            :value="inputValue" @input="handleInput" :clearable="clearable" 
+            @compositionstart.stop = "handleCompositionStart"
+            @compositionend.stop = "handleCompositionEnd">
         <span 
         :class="{'clear-icon':isShowClearIcon,'clear-icon-hidden':!isShowClearIcon}">
             <i class="iconfont icon-close" @click="handleClear"></i>
@@ -13,7 +15,7 @@
             <h2>搜索类型</h2>
             <div class="searchType-warp">
                 <div class="type-list">
-                    <div @click.once="handleRadioChange(item.value)" v-for ="(item, index) in searchType" :key="index" class="radio-warp">
+                    <div @click="handleRadioChange(item.value)" v-for ="(item, index) in searchType" :key="index" class="radio-warp">
                         <input 
                             type="radio" 
                             name="searchType" 
@@ -109,7 +111,18 @@ const isShowClearIcon = computed(() => {
 const isShowSuggest = computed(() => {
     return inputValue.value.trim().length > 0
 })
+const isComposing = ref(false)
+const handleCompositionStart = () => {
+    isComposing.value = true
+}
+const handleCompositionEnd = (event) => {
+    isComposing.value = false  
+    emit('update:inputValue', event.target.value)
+}
 const handleInput = (event)=>{
+    if(isComposing.value){
+        return
+    }   
     emit('update:inputValue', event.target.value)
 }
 watch(inputValue, useDebounce((newValue) => {

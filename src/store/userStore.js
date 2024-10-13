@@ -3,10 +3,13 @@ import { ref, watch } from "vue";
 import { getQrcode, getQrcodeImg, checkQrcode, getLoginStatus, logout } from "../request/musicApi/login";
 import { getUserDetail, getUserPlaylist } from "../request/musicApi/user";
 let loginTimer = null;
+const ISLOGIN = "isLogin";
+const USERINFO = "userInfo";
+const COOKIE = "cookie";
 export const useUserStore = defineStore("user", () => {
-    const isLogin = ref(JSON.parse(localStorage.getItem("isLogin") || false));
-    const userInfo = ref(JSON.parse(localStorage.getItem("userInfo") || null));
-    const cookie = ref(JSON.parse(localStorage.getItem("cookie") || null));
+    const isLogin = ref(JSON.parse(localStorage.getItem(ISLOGIN) || false));
+    const userInfo = ref(JSON.parse(localStorage.getItem(USERINFO) || null));
+    const cookie = ref(JSON.parse(localStorage.getItem(COOKIE) || null));
 
     const userPlayList = ref([]);
 
@@ -75,15 +78,15 @@ export const useUserStore = defineStore("user", () => {
     }
 
     watch(isLogin, (newVal) => {
-        localStorage.setItem("isLogin", JSON.stringify(newVal));
+        localStorage.setItem(ISLOGIN, JSON.stringify(newVal));
     }, { deep: true });
 
     watch(userInfo, (newVal) => {
-        localStorage.setItem("userInfo", JSON.stringify(newVal));
+        localStorage.setItem(USERINFO, JSON.stringify(newVal));
     },{ deep: true });
 
     watch(cookie, (newVal) => {
-        localStorage.setItem("cookie", JSON.stringify(newVal));
+        localStorage.setItem(COOKIE, JSON.stringify(newVal));
     },{ deep: true });
     return { 
         isLogin, 

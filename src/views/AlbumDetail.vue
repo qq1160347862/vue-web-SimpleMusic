@@ -35,15 +35,15 @@
                                 <i class="iconfont icon-bofang"></i>
                                 播放
                             </button>
-                            <button>
+                            <button v-if="isLogin">
                                 <i class="iconfont icon-subscribe"></i>
                                 {{ formatNumber(albumDetail?.subscribedCount) }}
                             </button>
-                            <button>
+                            <button v-if="isLogin">
                                 <i class="iconfont icon-SHARE"></i>
                                 {{ formatNumber(albumDetail?.shareCount) }}
                             </button>
-                            <button @click="handleShowComment">
+                            <button v-if="isLogin" @click="handleShowComment">
                                 <i class="iconfont icon-bofang"></i>
                                 评论
                             </button>
@@ -161,6 +161,7 @@ const {
     albumSortType 
 } = storeToRefs(localStore)
 const { isLogin, userInfo } = storeToRefs(userStore)
+const isLocated = route.params.location
 const albumId = route.params.id
 const albumDetail = shallowRef(null)
 const albumTracks = shallowRef(null)
@@ -173,7 +174,7 @@ const pageNo = ref(1)
 const handleTrackClick = useThrottle((track) => {
     if (!track) return;
     // message.value.addMessage({text: `切换至:《${track.name}》`, duration: 2000})
-    localStore.pushMusicToList(track)
+    localStore.addMusicToList(track,'current')
 },delay)
 const handleSelectClick = (dom,menuItem) => {
     const index = parseInt(dom.children[0].innerText) - 1;
@@ -219,7 +220,7 @@ const loadMoreComments = async () => {
     let cursor = null
     if(albumSortType.value === 3 && pageNo.value > 1){
         const len = albumComments.value[albumSortType.value].length
-        cursor = albumComments.value[albumSortType.value][len - 1].time
+        cursor = albumComments.value[albumSortType.value][len - 1]?.time
     }
     const params = {
         type: 2, 
@@ -250,8 +251,11 @@ const loadComments = async () => {
 }
 // onMounted 在组件首次挂载完成时触发的，这里用来请求歌单详情和歌曲列表
 onMounted( async () => {
+    if (isLocated === 'local') {
+        console.log('加载本地歌单');
+        return;        
+    }
     const isCached = albumCaches.value.findIndex(item => item.id === albumId);
-
     // 缓存命中, 不用重新请求数据
     if (isCached !== -1) {
         console.log('缓存命中');
@@ -279,7 +283,7 @@ onMounted( async () => {
             detail: res.data.playlist,
             tracks: tracksRes.data.songs
         });
-        console.log('缓存新数据');
+        console.log('缓存新数据', albumCaches.value);
         
         // 缓存数量最多缓存maxCacheCount个
         if (albumCaches.value.length > maxCacheCount.value) {
@@ -333,10 +337,12 @@ onMounted( async () => {
     margin-right: 16px;
 }
 .playList-caption ul li:nth-child(2) {
-    width: 240px;
+    width: 320px;
+    margin-right: 16px;
 }
 .playList-caption ul li:nth-child(3) {
     width: 240px;
+    margin-right: 16px;
 }
 .playList-caption ul li:nth-child(4) {
     width: 120px;
@@ -498,8 +504,9 @@ onMounted( async () => {
     display: flex;
     /* justify-content: center;    */
     align-items: center; 
-    width: 240px;    
+    width: 320px;    
     pointer-events: none;
+    margin-right: 16px;
 }
 .track-infos img {
     width: 32px;
@@ -515,6 +522,9 @@ onMounted( async () => {
     justify-content: center;
     align-items: flex-start;
     gap: 4px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
 }
 .track-album,
 .track-duration {
@@ -526,6 +536,7 @@ onMounted( async () => {
 }
 .track-album {
     width: 240px;
+    margin-right: 16px;
 }
 .track-duration {
     width: 120px;

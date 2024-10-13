@@ -21,7 +21,9 @@
                   </div>
                   <div class="func-warp">
                     <div class="func-switch-btn">
-                      <SwitchBtn :options="switchBtnOptions"
+                      <SwitchBtn 
+                        name="comment"
+                        v-model:options="switchBtnOptions"
                         @handleClick="handleSwitchBtnClick"></SwitchBtn>
                     </div>
                     <div class="func-container">     

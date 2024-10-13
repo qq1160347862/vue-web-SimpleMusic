@@ -89,17 +89,17 @@ const customStyle = computed(() => {
     outline: none;
     visibility: hidden;
     opacity: 0;
-    transform: translateY(-75%) scale(0.8);
+    transform:  scale(0.8);
     transition: .2s;
     pointer-events: none;
+    z-index: 99999999;
 }
 .dialog[open] {    
     visibility: visible;
     opacity: 1;
-    transform: translateY(-75%) scale(1);
+    transform:  scale(1);
     pointer-events: auto;
 }
-
 .dialog.modal::backdrop {
     background: var(--dialog-modal-mask-bg-color);
     backdrop-filter: blur(10px);

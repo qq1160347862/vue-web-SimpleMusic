@@ -56,7 +56,7 @@
                     </li>
                 </ul>                
             </Transition>
-            <div class="ring" :id="`${name}-ring`" v-show="comments[sortType]"></div>                      
+            <div class="ring" :id="`${name}-ring`" v-show="comments[sortType]?.length !== 0"></div>                      
         </div>
     </Transition>
     <Transition name="sub-comment">

@@ -23,7 +23,7 @@ const router = createRouter({
         component: () => import('@/views/Album.vue')
     },
     {
-        path: '/albumDetail/:id',
+        path: '/albumDetail/:location/:id',
         name: 'AlbumDetail',
         component: () => import('@/views/AlbumDetail.vue')
     },

@@ -50,6 +50,23 @@
     --aside-menu1-func-scrollbar-track-bg-color: transparent;
     --aside-menu1-func-scrollbar-thumb-bg-color: #da89a2;
     --aside-menu1-func-scrollbar-thumb-hover-bg-color: #e46a91;
+    --create-playlist-dialog-bg-color: white;
+    --create-playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --create-playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --create-playlist-dialog-close-color: #212529;
+    --create-playlist-dialog-close-hover-color: red;
+    --create-playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --create-playlist-dialog-title-color: #212529;
+    --create-playlist-dialog-body-font-color: #212529;
+    --create-playlist-tag-dialog-bg-color: white;
+    --create-playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --create-playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --create-playlist-tag-dialog-close-color: #212529;
+    --create-playlist-tag-dialog-close-hover-color: red;
+    --create-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --create-playlist-tag-dialog-title-color: #212529;
+    --create-playlist-tag-dialog-body-font-color: #212529;
+    
 
 
     --main-scrollbal-track-bg-color: transparent;
@@ -107,4 +124,18 @@
     --album-card-playCount-color: #fff;
     --album-card-playCount-bg-color: rgba(0, 0, 0, 0.5);
     --album-card-info-color: black;
+
+
+    --localPlayList-switchBtn-bg-color: #da89a2;
+    --localPlayList-switchBtn-active-bg-color: #e46a91;
+    --localPlayList-switchBtn-color: white;
+    --localPlayList-switchBtn-active-color: white;
+    --localPlayList-switchBtn-hover-color: #da89a2;
+    --localPlayList-switchBtn-disabled-color: gray;
+    --comment-switchBtn-bg-color: #da89a2;
+    --comment-switchBtn-active-bg-color: #e46a91;
+    --comment-switchBtn-color: white;
+    --comment-switchBtn-active-color: white;
+    --comment-switchBtn-hover-color: #da89a2;
+    --comment-switchBtn-disabled-color: gray;
 }
