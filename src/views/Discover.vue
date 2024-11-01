@@ -5,7 +5,7 @@
                     enterClass: 'show-scrollbar',
                     leaveClass: 'show-scrollbar',
                 }">
-            <div class="discover-album-warp">
+            <div class="discover-album-warp no-select">
                 <h2 class="discover-album-title">发现好歌单</h2>
                 <div class="discover-album-list">
                     <div class="discover-album-list-item" v-for="album in discoverAlbumList" :key="album.id" v-memo="[album.id, album.name]">
@@ -19,7 +19,7 @@
                     </div>
                 </div>
             </div>
-            <div class="recommend-album-warp" v-if="isLogin">
+            <div class="recommend-album-warp no-select" v-if="isLogin">
                 <h2 class="recommend-album-title">每日推荐</h2>
                 <div class="recommend-album-list">
                     <div class="recommend-album-list-item" v-for="album in recommendAlbumList" :key="album.id" v-memo="[album.id, album.name]">
@@ -61,11 +61,8 @@ const redirectToAlbum = (albumId) => {
 
 onMounted(async () => {
     try {
-        const [discoverAlbum, recommendAlbum] = await Promise.all([
-            getDiscoverPlaylist(8),
-            getRecommendPlaylist(cookie.value)
-        ]);
 
+        const discoverAlbum = await getDiscoverPlaylist(8);
         if (discoverAlbum.data.code === 200) {
             discoverAlbumList.value = discoverAlbum.data.result;
             showDiscoverAlbumCard.value = true;
@@ -73,15 +70,23 @@ onMounted(async () => {
             console.error('获取发现好歌单失败:');
         }
 
-        if (recommendAlbum.data.code === 200) {
-            recommendAlbumList.value = recommendAlbum.data.recommend;
-            showRecommendAlbumCard.value = true;
-        } else {
-            console.error('获取每日推荐专辑失败:');
+        let recommendAlbum = null;
+        if (isLogin.value){
+            recommendAlbum = await getRecommendPlaylist(cookie.value);
+            if (recommendAlbum.data.code === 200) {
+                recommendAlbumList.value = recommendAlbum.data.recommend;
+                showRecommendAlbumCard.value = true;
+            } else {
+                console.error('获取每日推荐专辑失败:');
+            }
         }
+        
     } catch (err) {
         console.error('请求失败:', err || '未知错误');
-        message.value.addMessage({ text: `请求失败: ${err.response.data.msg || '未知错误'}`, duration: 3000 });  
+        if (err.status === 301 || err.response.status === 301) {
+            isLogin.value = false;
+        }
+        message.value.addMessage({ text: `请求失败: ${err.response.data.msg || '未知错误'}`, duration: 3000, type: 'error' });  
     }
 })
 

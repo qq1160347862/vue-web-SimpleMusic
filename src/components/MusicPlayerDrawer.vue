@@ -28,10 +28,10 @@
                     </div>
                     <div class="func-container">     
                       <div class="func-layout" v-resize="handleResize">
-                        <div class="lyric-warp active">
+                        <div class="lyric-warp active" @wheel.prevent.stop="handleLyricWheel">                  
                           <ul class="lrc-list" v-if="musicList[currentIndex]?.lyric">
-                            <li v-for="(item, index) in musicList[currentIndex]?.lyric"
-                              :key="index" class="no-select">{{ item.words }}</li>
+                            <li v-for="(item, index) in musicList[currentIndex]?.lyric" @click="handleLyricClick"
+                              :key="index" class="no-select" :data-index="index" :data-time="item.time">{{ item.words }}</li>
                           </ul>
                           <ul class="lrc-list" v-else>
                             <li>暂无歌词</li>
@@ -123,6 +123,8 @@ import { computed, onBeforeUnmount, onMounted, ref, inject, defineAsyncComponent
 import { useLocalStore } from '@/store/localStore';
 import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
+import useDebounce from '../hooks/useDebounce';
+import useThrottle from '../hooks/useThrottle';
 import useAudioVisualizer from '@/hooks/useAudioVisualizer';
 const props = defineProps({
   show: Boolean
@@ -181,7 +183,7 @@ const musicOn_off = () => {
 
   // 确保音乐列表不为空，避免除以零的错误
   if (musicList.value.length === 0) {
-      message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 3000 });  
+      message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 3000, type: "error" });  
       return;
   }
 
@@ -212,7 +214,7 @@ const changePlayerMode = () => {
     const modes = ['单曲循环', '顺序播放', '随机播放'];
     loop.value = (loop.value + 1) % modes.length; // 计算下一个播放模式
     const msg = `已切换为${modes[loop.value]}`;
-    message.value.addMessage({ text: msg, duration: 3000 });  
+    message.value.addMessage({ text: msg, duration: 3000, type: "info" });  
 }
 // 处理窗口大小变化
 const handleResize = (e) => {
@@ -258,6 +260,9 @@ const handleSwitchBtnClick = (value) => {
   }
 }
 // 歌词滚动
+let lyricDomHeight = 0
+let lyricUlHeight = 0
+let containerDomHeight = 0
 const updateLyric = () => {
   if(isDragging.value) {
     return
@@ -282,10 +287,15 @@ const updateLyric = () => {
     }
   }
   
-  let liHeight = lyricDoms.ul.children[0].clientHeight  // 单个li的高度
-  let maxOffset = lyricDoms.ul.clientHeight - lyricDoms.container.clientHeight  // 歌词滚动区域的最大偏移量
-  let minOffset = lyricDoms.container.clientHeight/2 // 歌词滚动区域的最小偏移量
-  let offset = liHeight * lyricIndex + liHeight/2 - lyricDoms.container.clientHeight/2    // 歌词滚动区域的偏移量
+  // 回流的操作做一遍就够了
+  if (lyricDomHeight === 0 || containerDomHeight === 0 || lyricUlHeight === 0) {
+    lyricDomHeight = lyricDoms.ul.children[0].clientHeight  // 单个li的高度
+    containerDomHeight = lyricDoms.container.clientHeight
+    lyricUlHeight = lyricDoms.ul.clientHeight
+  }
+  // let maxOffset = lyricDoms.ul.clientHeight - containerDomHeight  // 歌词滚动区域的最大偏移量
+  // let minOffset = containerDomHeight/2 // 歌词滚动区域的最小偏移量
+  let offset = lyricDomHeight * lyricIndex + lyricDomHeight/2 - containerDomHeight/2    // 歌词滚动区域的偏移量
   // if(offset < 0) {
   //   offset = 0
   // }
@@ -293,7 +303,6 @@ const updateLyric = () => {
   //     offset = maxOffset
   // }
   lyricDoms.ul.style.transform = `translateY(calc(-1 * ${offset}px))`
-  
   
   // 消除所有li的active再添加高亮li的active
   let activeLi = lyricDoms.ul.querySelector('.active')
@@ -306,6 +315,62 @@ const updateLyric = () => {
       // curLi.className = 'active'
       curLi.classList.add('active') 
   }   
+}
+// 歌词滑动
+const LyricWheel = (e) => {  
+  const lyricUl = document.querySelector('.lyric-warp ul')
+  let offset = parseFloat(lyricUl.style.transform.split('(')[2].split(')')[0].split('p')[0])
+  if(e.deltaY > 0) {
+    offset-=50
+  }else{
+    offset+=50
+  }
+  let minOffset = containerDomHeight/2 // 歌词滚动区域的最小偏移量
+  let maxOffset = -(lyricUlHeight - minOffset)  // 歌词滚动区域的最大偏移量  
+  offset = Math.min(offset, minOffset)
+  offset = Math.max(offset, maxOffset)
+  lyricUl.style.transform = `translateY(calc(${offset}px))`
+  return offset
+}
+const updateLyricTime = useDebounce((lyricIndex)=>{
+  isDragging.value = false
+  const lyric = musicList.value[currentIndex.value].lyric
+  const time = lyric[lyricIndex].time  
+  localPlayer.value.currentTime = time?time:!lyricIndex?0:lyric[lyric.length - 2].time
+},500)
+const updateLyricIndex = useThrottle((lyricIndex)=>{
+  const lyricUl = document.querySelector('.lyric-warp ul')
+  // 消除所有li的active再添加高亮li的active
+  let activeLi = lyricUl.querySelector('.active')
+  if (activeLi) {
+      activeLi.classList.remove('active')
+  }
+  let curLi = lyricUl.children[lyricIndex]
+  // 为了避免错误，如果当前li对象存在有值才执行高亮
+  if (curLi) {
+      // curLi.className = 'active'
+      curLi.classList.add('active') 
+  }
+},200)
+const handleLyricWheel = (e) =>{
+  isDragging.value = true
+  const offset = LyricWheel(e)
+  const lyric = musicList.value[currentIndex.value].lyric
+  let liHeight = lyricDomHeight  // 单个li的高度
+  let lyricIndex = Math.max(
+    Math.floor(
+      0.2 + (-offset + containerDomHeight/2 - liHeight/2) / liHeight
+    ),
+    0
+  )
+  lyricIndex = Math.min(lyricIndex, lyric.length - 1)
+  updateLyricIndex(lyricIndex)
+  updateLyricTime(lyricIndex)
+}
+// 歌词跳转
+const handleLyricClick = (e) => {
+  const time = e.target.dataset.time
+  localPlayer.value.currentTime = +time
 }
 // 切换评论排序方式
 const switchSortType = async (type) => {
@@ -344,6 +409,8 @@ const loadMoreComments = async () => {
   }
   await localStore.getMoreComments(params)
 }
+
+
 onMounted(() => {
   const canvas = document.getElementById('visualizer')
   const audio = document.getElementById('player')
@@ -359,7 +426,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .drawer-mask {
     position: fixed;
-    z-index: 9999;
+    z-index: 99999;
     top: 0;
     left: 0;
     width: 100%;
@@ -441,6 +508,13 @@ onBeforeUnmount(() => {
   position: relative;
   width: 400px;
   height: 400px;
+  flex-grow: 1;
+}
+.music-picUrl canvas {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 .record-warp img {
   position: absolute;
@@ -469,17 +543,17 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: 16px;
+  margin: 16px 0;
 }
 .func-container {
+  flex-grow: 1;
   width: 100%;
   overflow: hidden;  
 }
 .func-layout {
   display: flex;
-  align-items: center;
   justify-content: center;
-  height: 100%;
+  height: 60vh;
   width: 300%;
   transition: all 0.3s ease;
 }
@@ -510,7 +584,7 @@ onBeforeUnmount(() => {
 .playlist-warp,
 .comment-warp {
   width: 100%;
-  height: 480px;
+  height: 60vh;
   overflow: hidden;
   transition: all 0.1s ease;
   transform: scale(0.8);
@@ -543,7 +617,8 @@ onBeforeUnmount(() => {
   cursor: pointer;  
 }
 .lrc-list li:hover {
-  color: #000;
+  font-weight: bold;
+  color: #fff;
 }
 .lrc-list li.active {
   

@@ -19,7 +19,11 @@
             label: '删除',
             icon: 'icon-shanchu',
         }]">
-                <ul class="music-list" v-dragger="musicList">  
+                <ul class="music-list" v-dragger="{
+                    musicList,
+                    currentIndex,
+                    setCurrentIndex,
+                }">  
                     <TransitionGroup name="list">           
                         <li @click="handleClick(song)"
                             draggable="true"
@@ -49,7 +53,7 @@ import { useLocalStore } from '../store/localStore';
 import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
 import useThrottle from '../hooks/useThrottle'
-import { ref } from 'vue'
+import { nextTick, ref } from 'vue'
 const localStore = useLocalStore();
 const userStore = useUserStore()
 const { musicList, currentIndex } = storeToRefs(localStore);
@@ -82,6 +86,16 @@ const handleSelectClick = (dom,menuItem) => {
         }
         console.log('删除')
     }
+}
+const setCurrentIndex = (index) => {
+    if (index === currentIndex.value) {
+        currentIndex.value = -1;
+        nextTick(() => { // 等待动画结束
+            currentIndex.value = index;
+        })
+        return;
+    }
+    currentIndex.value = index;
 }
 </script>
 

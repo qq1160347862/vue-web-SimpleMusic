@@ -12,23 +12,37 @@
             <div class="scroll-warp" :style="{'--warp-count': `calc(${switchBtnOptions.length} * 100%)`}" v-resize="handleResize">
                 <div class="local-list-warp" v-hover="{
                     enterClass: 'show-scrollbar',
-                    leaveClass: 'show-scrollbar',}">   
-                    <ul class="playList-container">
-                        <li class="playList-card" 
-                            @click="handlePlayListClick(item, 'local')" 
-                            v-for="(item, index) in localPlayList" 
-                            :key="index">
-                            <div class="card-box no-select">
-                                <img :src="item.coverImgUrl" alt="">
-                                <div class="card-info">
-                                    <p class="card-title">{{item.name}}</p>
-                                    <p class="card-trackCount">{{item.trackCount}}首</p>
-                                    <p class="card-createTime">创建时间:{{formatDate(new Date(item.createTime),'-')}}</p>
-                                    <p class="card-updateTime">更新时间:{{formatDate(new Date(item.updateTime),'-')}}</p>
+                    leaveClass: 'show-scrollbar',}">
+                    <ContextMenu
+                        @select="handleRightClick"
+                        watchClass="card-box"
+                        :menu="[{
+                            label: '播放全部',
+                            icon: 'icon-Playlists-xiayishoubofang',
+                        }, {
+                            label: '编辑歌单',
+                            icon: 'icon-shoucangdaogedan',
+                        },{
+                            label: '删除歌单',
+                            icon: 'icon-shanchu',
+                        }]">   
+                        <ul class="playList-container">
+                            <li class="playList-card" 
+                                @click="handlePlayListClick(item, 'local')" 
+                                v-for="(item, index) in localPlayList" 
+                                :key="index">
+                                <div class="card-box no-select" :data-id="item.id">
+                                    <img :src="item.detail.coverImgUrl" alt="">
+                                    <div class="card-info">
+                                        <p class="card-title">{{item.detail.name}}</p>
+                                        <p class="card-trackCount">{{item.detail.trackCount}}首</p>
+                                        <p class="card-createTime">创建时间:{{formatDate(new Date(item.detail.createTime),'-')}}</p>
+                                        <p class="card-updateTime">更新时间:{{formatDate(new Date(item.detail.updateTime),'-')}}</p>
+                                    </div>
                                 </div>
-                            </div>
-                        </li>
-                    </ul>
+                            </li>
+                        </ul>
+                    </ContextMenu>
                 </div>
                 <div class="user-list-warp"  v-hover="{
                     enterClass: 'show-scrollbar',
@@ -52,23 +66,77 @@
                 </div>
             </div>                             
         </div>
+        <Dialog v-model="showDialog" id="edit-playlist-dialog">
+            <template #title>编辑歌单</template>
+            <template #content>
+                <div class="edit-form-warp" v-if="editedPlayList">
+                    <form @submit.prevent="editPlaylist" class="edit-form">
+                        <div class="form-group-name" v-once>
+                            <label for="edit-playlist-name">歌单名称:</label>
+                            <input type="text" id="edit-playlist-name" :value="editedPlayList.name" placeholder="请输入歌单名称" required>
+                        </div>
+                        <div class="form-group-img">
+                            <label for="edit-playlist-img">封面图片:</label>
+                            <input type="file" id="edit-playlist-img" accept="image/*">
+                        </div>
+                        <div class="form-group-tags">
+                            <label for="edit-playlist-tags">标签:</label>
+                            <select name="tags" id="edit-playlist-tags" @change="handleSelectTag">
+                                <option value="" disabled selected>请选择</option>
+                                <option v-for="(tag, index) in localTags" :key="index" :value="tag" >{{ tag }}</option>                            
+                            </select>
+                        </div>                    
+                        <ul class="form-group-show-tags">
+                            <li class="tagSelected" v-for="(tag, index) in tagsSelected" :key="index">
+                                <span>{{ tag }}</span>
+                                <i class="iconfont icon-close" @click="tagsSelected.splice(index, 1)"></i>
+                            </li>
+                            <li class="tagSelected plus" @click="showTagDialog=true">
+                                <i class="iconfont icon-plus"></i>
+                            </li>
+                        </ul>
+                        <Dialog v-model="showTagDialog" type="modal" id="edit-playlist-tag-dialog">
+                            <template #title>创建标签</template>
+                            <template #content>
+                                <form @submit.prevent="createTag" class="form-group-tagDiv">
+                                    <label for="edit-playlist-tagDiv">自定义标签:</label>
+                                    <input type="text" id="edit-playlist-tagDiv" placeholder="回车创建标签" required>
+                                </form>
+                            </template>
+                        </Dialog>
+                        <div class="form-group-desc" v-once>
+                            <label for="edit-playlist-desc">描述:</label>
+                            <textarea id="edit-playlist-desc" :value="editedPlayList.description" placeholder="请输入歌单描述"></textarea>
+                        </div>
+                        <div class="form-group-btn">
+                            <button type="submit">修改</button>
+                            <button type="button" @click="showDialog=false">取消</button>
+                        </div>
+                    </form>
+                </div>
+            </template>
+        </Dialog>
     </div>
 </template>
 
 <script setup>
+import Dialog from '../components/utils/Dialog.vue';
 import SwitchBtn from '../components/utils/SwitchBtn.vue';
+import ContextMenu from '../components/utils/ContextMenu.vue';
 import { onMounted, ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router';
 import { useUserStore} from '../store/userStore'
 import { useLocalStore } from '../store/localStore';
 import { storeToRefs } from 'pinia';
 import useDateFormat from '@/hooks/useDateFormat'
+import useDeepClone from '../hooks/useDeepClone';
 const router = useRouter();
 const formatDate = useDateFormat();
+const deepClone = useDeepClone();
 const userStore = useUserStore();
 const localStore = useLocalStore();
 const { userPlayList, isLogin } = storeToRefs(userStore);
-const { localPlayList } = storeToRefs(localStore);
+const { localPlayList, localTags } = storeToRefs(localStore);
 const optionIndex = ref(0)
 const switchBtnOptions = ref([
     {
@@ -86,9 +154,75 @@ const switchBtnOptions = ref([
         checked: false
     },
 ])
+const showDialog = ref(false)
+const editedPlayList = ref(null)
+const editId = ref(null)
+const tagsSelected = ref([])
+const showTagDialog = ref(false)
+
+// 编辑歌单
+const editPlaylist = ()=>{
+    const name = document.getElementById('edit-playlist-name').value.trim()
+    const description = document.getElementById('edit-playlist-desc').value.trim()
+    const tags = tagsSelected.value
+    if (!name) {
+        alert('歌单名称不能为空')
+        return;
+    }
+    localStore.updateLocalPlaylist(editId.value,{ name, description, tags })
+    showDialog.value = false
+    tagsSelected.value = []
+    editedPlayList.value = null
+}
+// 选择标签
+const handleSelectTag = (e)=>{
+    const tag = e.target.value
+    const tags = e.target.parentNode.children[1].children
+    if (tagsSelected.value.includes(tag)) {
+        console.log('已选择,不可以重复选择');        
+    } else {
+        tagsSelected.value.push(tag)        
+    }
+    for (let i = 0; i < tags.length; i++){
+        const item = tags[i];
+        if (i === 0) {
+            item.selected = true
+        }else{
+            item.selected = false
+        }
+    }
+}
+// 创建标签
+const createTag = (e)=>{
+    const tag = e.target[0].value.trim()
+    if (!tag) {
+        return;
+    }
+    e.target[0].value = ''
+    showTagDialog.value = false
+    tagsSelected.value.push(tag)
+    localTags.value.push(tag)
+}
 // 点击歌单卡片
 const handlePlayListClick = (item, location) => {
     router.push({ name: 'AlbumDetail', params: { id: item.id, location: location } })
+}
+// 右键歌单卡片
+const handleRightClick = (dom,menuItem)=>{
+    const targetId = parseInt(dom.dataset.id)
+    editId.value = targetId
+    if (menuItem.label === '播放全部') {
+        const tracks = localStore.getLocalPlaylist(targetId).tracks;
+        localStore.setMusicList(tracks)            
+    } else if (menuItem.label === '编辑歌单') {
+        console.log('编辑')
+        const detail = localStore.getLocalPlaylist(targetId).detail
+        editedPlayList.value = deepClone(detail)
+        tagsSelected.value = deepClone(detail.tags)
+        showDialog.value = true
+    } else if (menuItem.label === '删除歌单') {
+        localStore.deleteLocalPlaylist(targetId)
+    }
 }
 // 处理窗口大小变化
 const handleResize = (e) => {
@@ -144,7 +278,9 @@ onMounted(async () => {
     if (isLogin.value) {
         switchBtnOptions.value[1].disabled = false
         switchOptions(0)
-        await userStore.getUserPlayListData();
+        if (userPlayList.value.length <= 0) {
+            await userStore.getUserPlayListData();
+        }
     }
 })
 </script>
@@ -210,6 +346,7 @@ onMounted(async () => {
     flex-direction: column;
     transition: all 0.2s;
     transform: scale(0.95);
+    gap: 8px;
 }
 .card-box:hover {
     transform: scale(1);
@@ -219,6 +356,7 @@ onMounted(async () => {
     height: 96px;
     object-fit: cover;
     border-radius: 8px;
+    pointer-events: none;
 }
 .card-info {
     flex: 1;
@@ -228,6 +366,7 @@ onMounted(async () => {
     justify-content: center;
     align-items: center;
     gap: 8px;
+    pointer-events: none;
 }
 .card-title {
     text-align: center;
@@ -288,6 +427,129 @@ onMounted(async () => {
     gap: 24px;
 }
 
+
+
+.edit-form-warp {
+    width: 100%;
+    height: 100%;
+}
+.edit-form {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    padding: 20px;
+    gap: 16px;
+}
+.form-group-name,
+.form-group-img,
+.form-group-tags,
+.form-group-tagDiv,
+.form-group-show-tags,
+.form-group-desc,
+.form-group-btn {
+    width: 360px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    padding: 8px;
+}
+.form-group-show-tags {
+    flex-wrap: wrap;
+}
+.form-group-desc {
+    align-items: flex-start;
+}
+.edit-form label {
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+}
+.edit-form input[type="text"],
+.edit-form textarea,
+.form-group-tagDiv input[type="text"] {
+    flex-grow: 1;
+    border-radius: var(--border-radius-light);
+    border: none;
+    outline: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+    color: #333;
+    text-indent: 4px;
+}
+.edit-form textarea {
+    height: 100px;
+    resize: none;
+    padding: 8px;
+    box-shadow: #333 0px 0px 0px 1px;
+}
+.tagSelected {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 4px 8px 4px 16px;
+    height: 24px;
+    border-radius: 24px;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.tagSelected.plus {
+    padding: 4px 16px;
+}
+.tagSelected:hover {
+    background-color: palevioletred;
+    color: #fff;
+}
+.form-group-tagDiv {
+    margin-bottom: 24px;
+}
+#edit-playlist-tags {
+    /* -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance:none; */
+    width: 96px;
+    padding: 4px 16px;
+    border-radius: 16px;
+    border: none;
+    cursor: pointer;
+    background-color: #333;
+    color: #fff;
+    font-size: 12px;
+    outline: none;
+    transition: all 0.3s ease;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+#edit-playlist-tags:focus-visible {
+    outline: none;
+}
+#edit-playlist-tags option {
+    border: none; 
+    outline: none;
+}
+.form-group-btn {
+    justify-content: flex-end;
+}
+.form-group-btn button {
+    /* width: 100%; */
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: none;
+    background-color: #333;
+    color: #fff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+.form-group-btn button:hover {
+    background-color: palevioletred;
+    color: #fff;
+}
 
 
 

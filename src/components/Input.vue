@@ -249,7 +249,7 @@ const handleRadioChange = (value) => {
 }
 .history-warp {
     overflow-y: scroll;
-    min-height: 36px;
+    min-height: 64px;
     max-height: 480px;
 }
 .type-list,

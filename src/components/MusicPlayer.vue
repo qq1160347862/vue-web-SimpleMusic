@@ -3,7 +3,7 @@
         <div class="player-bg"></div>
         <div class="player-content">
             <div class="player-left">
-                <div :class="{'songs-img':!isPlaying,'songs-img played':isPlaying}" @click="isShowMusicPlayerDrawer = true"
+                <div :class="{'songs-img':!isPlaying,'songs-img played':isPlaying}" v-if="musicList.length" @click="isShowMusicPlayerDrawer = true"
                 :style="`background-image:url(${musicList[currentIndex]?.al.picUrl})`"></div>
                 <Teleport to="body">
                     <MusicPlayerDrawer @close="isShowMusicPlayerDrawer = false"
@@ -118,7 +118,7 @@ const musicOn_off = () => {
 
     // 确保音乐列表不为空，避免除以零的错误
     if (musicList.value.length === 0) {
-        message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 3000 });  
+        message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 3000, type: 'error' });  
         return;
     }
 
@@ -149,7 +149,7 @@ const changePlayerMode = () => {
     const modes = ['单曲循环', '顺序播放', '随机播放'];
     loop.value = (loop.value + 1) % modes.length; // 计算下一个播放模式
     const msg = `已切换为${modes[loop.value]}`;
-    message.value.addMessage({ text: msg, duration: 3000 });  
+    message.value.addMessage({ text: msg, duration: 3000, type: 'info' });  
 }
 // 打开音乐列表
 const handleClickMusicList = () => {
@@ -180,7 +180,7 @@ onMounted(() => {
     // audio Dom存入store
     player.value.crossOrigin = "anonymous"  // 解决跨域问题
     localPlayer.value = player.value  
-    message.value.addMessage({ text: "欢迎使用音乐播放器", duration: 3000 });  
+    message.value.addMessage({ text: "欢迎使用音乐播放器", duration: 3000, type: 'success' });  
 
     window.addEventListener('click',handleClickOutside)
 })

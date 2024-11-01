@@ -41,7 +41,7 @@
     --aside-menu2-item-font-color: #212529;
     --aside-menu2-item-active-font-color:white;
     --aside-menu2-item-hover-icon-color: white;
-    --aside-menu2-item-hover-bg-color: #da89a2;
+    --aside-menu2-item-hover-bg-color: #000;
     --aside-menu2-item-hover-font-color: white;
     --aside-menu1-func-btn-color:white;
     /* --aside-menu1-func-btn-bg-color: linear-gradient(to bottom right,#91defe,#99c0f9,#bdb6ec,#d7b3e3,#efb3d5,#f9bccc); */
@@ -66,6 +66,54 @@
     --create-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
     --create-playlist-tag-dialog-title-color: #212529;
     --create-playlist-tag-dialog-body-font-color: #212529;
+    --edit-playlist-dialog-bg-color: white;
+    --edit-playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --edit-playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --edit-playlist-dialog-close-color: #212529;
+    --edit-playlist-dialog-close-hover-color: red;
+    --edit-playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --edit-playlist-dialog-title-color: #212529;
+    --edit-playlist-dialog-body-font-color: #212529;
+    --edit-playlist-tag-dialog-bg-color: white;
+    --edit-playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --edit-playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --edit-playlist-tag-dialog-close-color: #212529;
+    --edit-playlist-tag-dialog-close-hover-color: red;
+    --edit-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --edit-playlist-tag-dialog-title-color: #212529;
+    --edit-playlist-tag-dialog-body-font-color: #212529;
+    --show-playlist-dialog-bg-color: white;
+    --show-playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --show-playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --show-playlist-dialog-close-color: #212529;
+    --show-playlist-dialog-close-hover-color: red;
+    --show-playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --show-playlist-dialog-title-color: #212529;
+    --show-playlist-dialog-body-font-color: #212529;
+    --show-playlist-tag-dialog-bg-color: white;
+    --show-playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --show-playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --show-playlist-tag-dialog-close-color: #212529;
+    --show-playlist-tag-dialog-close-hover-color: red;
+    --show-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --show-playlist-tag-dialog-title-color: #212529;
+    --show-playlist-tag-dialog-body-font-color: #212529;
+    --search-playlist-dialog-bg-color: white;
+    --search-playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --search-playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --search-playlist-dialog-close-color: #212529;
+    --search-playlist-dialog-close-hover-color: red;
+    --search-playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --search-playlist-dialog-title-color: #212529;
+    --search-playlist-dialog-body-font-color: #212529;
+    --search-playlist-tag-dialog-bg-color: white;
+    --search-playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --search-playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --search-playlist-tag-dialog-close-color: #212529;
+    --search-playlist-tag-dialog-close-hover-color: red;
+    --search-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --search-playlist-tag-dialog-title-color: #212529;
+    --search-playlist-tag-dialog-body-font-color: #212529;
     
 
 
@@ -94,7 +142,7 @@
     --footer-func-icon-color: #333;
     --footer-func-icon-hover-box-shadow: 0 0 4px rgba(0,0,0,0.3);
     --player-progress-bg-color: white;
-    --player-progressed-bg-color: #FF5722;
+    --player-progressed-bg-color: #666;
     --player-knob-bg-color: rgba(43, 43, 43, 0.8);
     --volume-progress-bg-color: white;
     --volume-progressed-bg-color: black;
@@ -108,14 +156,14 @@
     --calendar-header-color: black;
     --calendar-header-btn-color: black;
     --calendar-header-btn-bg-color: white;
-    --calendar-header-btn-hover-bg-color: #da89a2;
+    --calendar-header-btn-hover-bg-color: #000;
     --calendar-header-btn-hover-color: white;
-    --calendar-table-top-week-color: #e66b6b;
+    --calendar-table-top-week-color: #000;
     --calendar-table-current-day-color: white;
     --calendar-table-bg-color: white;
     --calendar-table-current-mouth-color: #000;
     --calendar-table-other-mouth-color: #818181;
-    --calendar-table-hover-bg-color: #da89a2;
+    --calendar-table-hover-bg-color: #000;
     --calendar-table-hover-color: white;
 
 
@@ -126,16 +174,28 @@
     --album-card-info-color: black;
 
 
-    --localPlayList-switchBtn-bg-color: #da89a2;
-    --localPlayList-switchBtn-active-bg-color: #e46a91;
+    --localPlayList-switchBtn-bg-color: #444;
+    --localPlayList-switchBtn-active-bg-color: #000;
     --localPlayList-switchBtn-color: white;
     --localPlayList-switchBtn-active-color: white;
-    --localPlayList-switchBtn-hover-color: #da89a2;
+    --localPlayList-switchBtn-hover-color: #444;
     --localPlayList-switchBtn-disabled-color: gray;
-    --comment-switchBtn-bg-color: #da89a2;
-    --comment-switchBtn-active-bg-color: #e46a91;
+    --comment-switchBtn-bg-color: #444;
+    --comment-switchBtn-active-bg-color: #000;
     --comment-switchBtn-color: white;
     --comment-switchBtn-active-color: white;
-    --comment-switchBtn-hover-color: #da89a2;
+    --comment-switchBtn-hover-color: #444;
     --comment-switchBtn-disabled-color: gray;
+    --showPlayList-switchBtn-bg-color: #444;
+    --showPlayList-switchBtn-active-bg-color: #000;
+    --showPlayList-switchBtn-color: white;
+    --showPlayList-switchBtn-active-color: white;
+    --showPlayList-switchBtn-hover-color: #444;
+    --showPlayList-switchBtn-disabled-color: gray;
+    --searchPlayList-switchBtn-bg-color: #444;
+    --searchPlayList-switchBtn-active-bg-color: #000;
+    --searchPlayList-switchBtn-color: white;
+    --searchPlayList-switchBtn-active-color: white;
+    --searchPlayList-switchBtn-hover-color: #444;
+    --searchPlayList-switchBtn-disabled-color: gray;
 }

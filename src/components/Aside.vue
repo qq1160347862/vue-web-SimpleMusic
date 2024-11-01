@@ -61,7 +61,7 @@
                     </div>
                     <div class="form-group-img">
                         <label for="create-playlist-img">封面图片:</label>
-                        <input type="file" id="create-playlist-img" accept="image/*" required>
+                        <input type="file" id="create-playlist-img" accept="image/*">
                     </div>
                     <div class="form-group-tags">
                         <label for="create-playlist-tags">标签:</label>
@@ -73,8 +73,9 @@
                     <ul class="form-group-show-tags">
                         <li class="tagSelected" v-for="(tag, index) in tagsSelected" :key="index">
                             <span>{{ tag }}</span>
+                            <i class="iconfont icon-close" @click="tagsSelected.splice(index, 1)"></i>
                         </li>
-                        <li class="tagSelected" @click="showTagDialog=true">
+                        <li class="tagSelected plus" @click="showTagDialog=true">
                             <i class="iconfont icon-plus"></i>
                         </li>
                     </ul>
@@ -141,24 +142,33 @@ const createTag = (e) => {
 // 选择标签
 const handleSelectTag = (e) => {
     const tag = e.target.value
+    const tags = e.target.parentNode.children[1].children
     if (tagsSelected.value.includes(tag)) {
         console.log('已选择,不可以重复选择');        
     } else {
-        tagsSelected.value.push(tag)
+        tagsSelected.value.push(tag)        
+    }
+    for (let i = 0; i < tags.length; i++){
+        const item = tags[i];
+        if (i === 0) {
+            item.selected = true
+        }else{
+            item.selected = false
+        }
     }
 }
 
 // 创建歌单
 const createPlaylist = () => {
     const name = document.getElementById('create-playlist-name').value.trim()
-    const desc = document.getElementById('create-playlist-desc').value.trim()
-    const tags = tagsSelected.value.join(',')
+    const description = document.getElementById('create-playlist-desc').value.trim()
+    const tags = tagsSelected.value
     if (!name) {
         alert('歌单名称不能为空')
         return;
-    }
-    console.log(name, desc, tags);    
-    // localStore.createPlaylist({ name, desc, tags })
+    }    
+    
+    localStore.createLocalPlaylist({ name, description, tags })    
     showDialog.value = false
     tagsSelected.value = []
     // 清空表单数据
@@ -217,7 +227,7 @@ aside {
     height: 44px;
     margin-bottom: 8px;
     border-radius: var(--border-radius-light);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 .menu2 .menu2-item:hover {
     background-color: var(--aside-menu2-item-hover-bg-color);
@@ -232,14 +242,14 @@ aside {
     font-size: 12px;
     font-weight: bold;
     color: var(--aside-menu2-item-font-color);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 .menu2-item.active span {
     margin-left: 4px;
     font-size: 12px;
     font-weight: bold;
     color: var(--aside-menu2-item-active-font-color);
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 .menu2-item:hover span {
     color: var(--aside-menu2-item-hover-font-color);
@@ -248,7 +258,7 @@ aside {
     font-size: 20px;
     color: var(--aside-menu2-item-icon-color);
     margin-right: 8px;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
 }
 .menu2-item.active .iconfont {
     color: var(--aside-menu2-item-active-icon-color);
@@ -333,6 +343,7 @@ aside {
     transition: all 0.3s ease;
     font-size: 14px;
     color: #333;
+    text-indent: 4px;
 }
 .create-form textarea {
     height: 100px;
@@ -344,7 +355,8 @@ aside {
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 4px 16px;
+    gap: 8px;
+    padding: 4px 8px 4px 16px;
     height: 24px;
     border-radius: 24px;
     background-color: #333;
@@ -352,6 +364,9 @@ aside {
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
+}
+.tagSelected.plus {
+    padding: 4px 16px;
 }
 .tagSelected:hover {
     background-color: palevioletred;

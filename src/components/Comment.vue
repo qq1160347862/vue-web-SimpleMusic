@@ -269,12 +269,12 @@ const handleReplyPanel = async (comment) => {
 }
 const handleSubmit = async (t) => {
     if(!props.isLogin) {
-        message.value.addMessage({text: '请先登录', duration: 2000})
+        message.value.addMessage({text: '请先登录', duration: 2000, type: 'warning'})
         return
     }
     const dialog = document.getElementById(`${props.name}inputPanel`)
     if(inputContent.value.trim() === '') {
-        message.value.addMessage({text: '评论内容不能为空', duration: 2000})
+        message.value.addMessage({text: '评论内容不能为空', duration: 2000, type: 'warning'})
         return
     }
     console.log(inputContent.value);
@@ -287,11 +287,11 @@ const handleSubmit = async (t) => {
         content: inputContent.value
     })    
     if(!res){
-        message.value.addMessage({text: '评论失败', duration: 2000})
+        message.value.addMessage({text: '评论失败', duration: 2000, type: 'error'})
         inputContent.value = ''
         return
     }
-    message.value.addMessage({text: '评论成功', duration: 2000})    
+    message.value.addMessage({text: '评论成功', duration: 2000, type: 'success'})    
     if(t === 1) {
         res.timeStr = '刚刚'
         res.liked = false
@@ -329,7 +329,7 @@ const handleSubmit = async (t) => {
 }
 const handleLikeComment = async (comment) => {
     if(!props.isLogin) {
-        message.value.addMessage({text: '请先登录', duration: 2000})
+        message.value.addMessage({text: '请先登录', duration: 2000, type: 'warning'})
         return
     }
     if(!comment) {
@@ -342,7 +342,7 @@ const handleLikeComment = async (comment) => {
         t: comment.liked ? 0 : 1
     })
     if(!res){
-        message.value.addMessage({text: '点赞失败', duration: 2000})
+        message.value.addMessage({text: '点赞失败', duration: 2000, type: 'error'})
         return
     }
     if(comment.liked){
@@ -354,7 +354,7 @@ const handleLikeComment = async (comment) => {
 }
 const deleteComment = async (comment) => {
     if(!props.isLogin) {
-        message.value.addMessage({text: '请先登录', duration: 2000})
+        message.value.addMessage({text: '请先登录', duration: 2000, type: 'warning'})
         return
     }
     const res = await props.handleComment({
@@ -364,7 +364,7 @@ const deleteComment = async (comment) => {
         t: 0
     })    
     if(!res){
-        message.value.addMessage({text: '删除失败', duration: 2000})
+        message.value.addMessage({text: '删除失败', duration: 2000, type: 'error'})
         return
     }
     if(subComments.value) {
@@ -374,7 +374,7 @@ const deleteComment = async (comment) => {
         }
         subComments.value.comments.splice(index, 1)
         subComments.value.totalCount -= 1
-        message.value.addMessage({text: '删除成功', duration: 2000})   
+        message.value.addMessage({text: '删除成功', duration: 2000, type: 'success'})   
         return
     }
     const index = props.comments[props.sortType].findIndex(item => item.commentId === comment.commentId)
@@ -382,7 +382,7 @@ const deleteComment = async (comment) => {
         return
     }
     props.comments[props.sortType].splice(index, 1)
-    message.value.addMessage({text: '删除成功', duration: 2000})    
+    message.value.addMessage({text: '删除成功', duration: 2000, type: 'success'})    
 }
 const picError = (e) => {
     e.target.src = avatarDefault
@@ -407,7 +407,7 @@ onMounted(() => {
             time: time
         })
         if(!res){
-            message.value.addMessage({text: '加载失败', duration: 2000})
+            message.value.addMessage({text: '加载失败', duration: 2000, type: 'error'})
             loadingDom2.style.display = 'none'
             return
         }

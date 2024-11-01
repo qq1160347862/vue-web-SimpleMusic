@@ -6,6 +6,9 @@ import { ref, shallowRef, watch } from "vue";
 import { getSongUrl, getLyric, defaultSearchKey, getSearchSuggest, getHotSearch, searchSongs} from '@/request/musicApi/songs'
 import { getComments, getFloorComments, operateComment, likeComment } from "@/request/musicApi/comment";
 import useLyricParse from "../hooks/useLyricParse";
+import useDeepClone from "../hooks/useDeepClone";
+import coverImgUrl from '@/assets/images/playList/default-coverImg.jpg'
+import avatarUrl from '@/assets/images/user/avatar-default.png'
 
 const HISTORYSEARCH = "historySearch"
 const LOCALPLAYLIST = "localPlayList"
@@ -17,6 +20,7 @@ const useLyric = useLyricParse()
 setActivePinia(createPinia())
 const userStore = useUserStore()
 const { isLogin, cookie } = storeToRefs(userStore)
+const deepClone = useDeepClone()
 
 export const useLocalStore = defineStore("local", () => {
     const localPlayer = ref(null);
@@ -50,7 +54,9 @@ export const useLocalStore = defineStore("local", () => {
 
     // 音乐列表覆盖
     const setMusicList = async (list) => {
-        musicList.value = list
+        if(list.length === 0) return
+        // 这里使用深拷贝，避免操作musicList影响到list的来源
+        musicList.value = deepClone(list)
         // 默认播放第一个歌曲
         currentIndex.value = 0
         const url = await getTrackUrl(list[0].id)
@@ -424,6 +430,101 @@ export const useLocalStore = defineStore("local", () => {
     }
 
 
+    // 创建本地歌单
+    const createLocalPlaylist = (config) => {
+        const { name, description, tags } = config
+        const createTime = new Date().getTime()
+        const updateTime = createTime
+        const tracks = []
+        const trackCount = 0
+        const creator = {
+            nickname: '本地歌单',
+            avatarUrl,
+        }
+        const detail = {
+            name,
+            creator,
+            description,
+            tags,
+            coverImgUrl,
+            trackCount,
+            createTime,
+            updateTime,
+        }
+        const id = parseInt(`${createTime.toString().substring(0, 8)}`+`${Math.floor(Math.random() * 100)}`)
+        localPlayList.value.push({
+            id,
+            detail,
+            tracks,
+        })
+        return id
+    }
+
+    // 获取指定id的本地歌单
+    const getLocalPlaylist = (id) => {
+        id = typeof id === 'string'?+id:id
+        const index = localPlayList.value.findIndex(item => item.id === id)
+        if(index !== -1) {
+            return localPlayList.value[index]
+        }
+        return null
+    }
+
+    // 删除指定id的本地歌单
+    const deleteLocalPlaylist = (id) => {
+        const index = localPlayList.value.findIndex(item => item.id === id)
+        if(index !== -1) {
+            localPlayList.value.splice(index, 1)
+        }
+    }
+
+    // 更新指定id的本地歌单
+    const updateLocalPlaylist = (id, config) => {
+        const index = localPlayList.value.findIndex(item => item.id === id)
+        if(index !== -1) {
+            const { name, description, tags } = config
+            const updateTime = new Date().getTime()
+            const detail = {
+                name,
+                description,
+                tags,
+                updateTime,
+            }
+            Object.assign(localPlayList.value[index].detail, detail)
+        }
+    }
+
+    // 指定id歌单添加歌曲
+    const addTrackToLocalPlaylist = (id, track) => {
+        const index = localPlayList.value.findIndex(item => item.id === id);
+        if (index === -1) {
+            return null;
+        }
+        const playlist = localPlayList.value[index];
+        if (playlist.tracks.findIndex(item => item.id === track.id) !== -1) {
+            return null;
+        }
+        playlist.tracks.push(track);
+        playlist.detail.trackCount++;
+        return true;
+    }
+
+    // 指定id歌单删除歌曲
+    const deleteTrackFromLocalPlaylist = (id, trackId) => {
+        const index = localPlayList.value.findIndex(item => item.id === +id);
+        if (index === -1) {
+            return null;
+        }
+        const playlist = localPlayList.value[index];
+        const trackIndex = playlist.tracks.findIndex(item => item.id === trackId);
+        if (trackIndex === -1) {
+            return null;
+        }
+        playlist.tracks.splice(trackIndex, 1);
+        playlist.detail.trackCount--;
+        return true;
+    }
+
     watch(currentIndex, async (newVal, oldVal) => {
         if(newVal !== -1) {
             isPlaying.value = true
@@ -500,6 +601,12 @@ export const useLocalStore = defineStore("local", () => {
         getHotSearchKey,
         saveSearchHistory,
         getSearchSuggestData,
-        searchResource
+        searchResource,
+        createLocalPlaylist,
+        getLocalPlaylist,
+        deleteLocalPlaylist,
+        updateLocalPlaylist,
+        addTrackToLocalPlaylist,
+        deleteTrackFromLocalPlaylist,
      }
 })
