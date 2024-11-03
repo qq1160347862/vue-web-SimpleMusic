@@ -59,18 +59,7 @@ export const useLocalStore = defineStore("local", () => {
         musicList.value = deepClone(list)
         // 默认播放第一个歌曲
         currentIndex.value = 0
-        const url = await getTrackUrl(list[0].id)
-        const lyric = await getTrackLyric(list[0].id)            
-        list[0].url = url
-        list[0].lyric = lyric
-        isPlaying.value = true
-        await getCommentsData({
-            id: musicList.value[currentIndex.value].id, 
-            type: 0, 
-            sortType: trackSortType.value, 
-            pageSize: 20, 
-            pageNo: 1, 
-        })    
+        isPlaying.value = true   
     }
 
     // 添加音乐至列表
@@ -100,13 +89,6 @@ export const useLocalStore = defineStore("local", () => {
             }else {
                 console.error('无效的位置参数')
             }
-            await getCommentsData({
-                id: musicList.value[currentIndex.value].id, 
-                type: 0, 
-                sortType: trackSortType.value, 
-                pageSize: 20, 
-                pageNo: 1, 
-            })
             return
         }
         currentIndex.value = index            
@@ -185,6 +167,24 @@ export const useLocalStore = defineStore("local", () => {
          
     }
 
+    // 删除音乐
+    const removeMusicFromList = (track) => {
+        const index = musicList.value.findIndex(item => item.id === track.id);
+        if(index !== -1) {
+            musicList.value.splice(index, 1)
+            if(index < currentIndex.value) {
+                currentIndex.value = currentIndex.value - 1
+            }
+            // 删除后，如果列表为空，则停止播放
+            if(musicList.value.length === 0) {
+                isPlaying.value = false
+                currentIndex.value = -1
+            }
+        }
+    }
+
+
+
     // 获取音乐Url
     const getTrackUrl = async (id) => {
         if(!id) return null
@@ -208,6 +208,8 @@ export const useLocalStore = defineStore("local", () => {
         }        
     }
     
+
+
     // 获取评论数据
     const getCommentsData = async ({id, type, sortType, pageSize, pageNo, cursor}) => {
         try {                                    
@@ -330,6 +332,8 @@ export const useLocalStore = defineStore("local", () => {
         }
     }
 
+
+
     // 获取默认搜索关键词
     const getDefaultSearchKey = async () => {
         try {
@@ -430,6 +434,7 @@ export const useLocalStore = defineStore("local", () => {
     }
 
 
+
     // 创建本地歌单
     const createLocalPlaylist = (config) => {
         const { name, description, tags } = config
@@ -525,6 +530,8 @@ export const useLocalStore = defineStore("local", () => {
         return true;
     }
 
+
+
     watch(currentIndex, async (newVal, oldVal) => {
         if(newVal !== -1) {
             isPlaying.value = true
@@ -553,6 +560,7 @@ export const useLocalStore = defineStore("local", () => {
             localPlayer.value.pause()
         }
     })
+
 
 
     watch(historySearch, (newVal) => {
@@ -592,6 +600,7 @@ export const useLocalStore = defineStore("local", () => {
         addMusicToList,
         nextMusic,
         switchMusic,
+        removeMusicFromList,
         getCommentsData,
         getMoreComments,
         getFloorCommentsData,

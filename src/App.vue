@@ -19,6 +19,7 @@
     </footer>    
   </div>  
   <Message ref="message"></Message>
+  <PlaylistDialog ref="playlistDialog"></PlaylistDialog>
 </template>
 
 <script setup>
@@ -27,11 +28,14 @@ import Nav from './components/Nav.vue';
 import Aside from './components/Aside.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
 import Message from './components/utils/Message.vue';
+import PlaylistDialog from './components/PlaylistDialog.vue';
 import { useRoute } from 'vue-router';
 import { computed, provide, ref } from 'vue';
 const route = useRoute();
 const message = ref()
+const playlistDialog = ref()
 provide('message', message)
+provide('playlistDialog', playlistDialog)
 </script>
 
 <style scoped>

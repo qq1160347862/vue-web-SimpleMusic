@@ -41,10 +41,13 @@
                           <span class="lyric-line" v-show="isDragging"></span>
                         </div>
                         <div class="playlist-warp">
-                          <MusicList></MusicList>
+                          <div class="playlist-container">
+                            <MusicList></MusicList>
+                          </div>                          
                         </div>
                         <div class="comment-warp">
-                          <comment 
+                          <div class="comment-container">
+                            <comment 
                             key="track"    
                             name="track"
                             v-if="showComment && musicList.length > 0"
@@ -59,6 +62,7 @@
                             :handleComment="localStore.handleComment"
                             @loadComments="loadMoreComments"
                             @switchSortType="switchSortType"></comment>
+                          </div>                          
                         </div>  
                       </div>                                              
                     </div>
@@ -273,7 +277,7 @@ const updateLyric = () => {
     container:document.querySelector('.lyric-warp')
   }
   let lyricIndex = 0 // 当前歌词的索引
-  const lyric = musicList.value[currentIndex.value].lyric
+  const lyric = musicList.value[currentIndex.value]?.lyric
   const lyricLen = lyric?.length? lyric.length : 0
   
   for(let i = 0; i < lyricLen; i++) {
@@ -353,9 +357,15 @@ const updateLyricIndex = useThrottle((lyricIndex)=>{
   }
 },200)
 const handleLyricWheel = (e) =>{
-  isDragging.value = true
-  const offset = LyricWheel(e)
+  
+
+  if(musicList.value.length === 0) { // 歌单为空则不能滚动
+    return;
+  }
+
   const lyric = musicList.value[currentIndex.value].lyric
+  const offset = LyricWheel(e)  
+  isDragging.value = true
   let liHeight = lyricDomHeight  // 单个li的高度
   let lyricIndex = Math.max(
     Math.floor(
@@ -627,11 +637,19 @@ onBeforeUnmount(() => {
   transform: scale(1.4);
 }
 
-.playlist-warp,
+/* .playlist-warp,
 .comment-warp {
-  background-color: #e6e6e65e;
+  
+  
+} */
+.playlist-container,
+.comment-container {  
+  width: 90%;
+  height: 100%;
+  margin: 0 auto;
   border-top-left-radius: var(--border-radius-light);
   border-bottom-left-radius: var(--border-radius-light);
+  background-color: #e6e6e65e;
 }
 
 

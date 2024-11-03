@@ -82,39 +82,22 @@
     --edit-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
     --edit-playlist-tag-dialog-title-color: #212529;
     --edit-playlist-tag-dialog-body-font-color: #212529;
-    --show-playlist-dialog-bg-color: white;
-    --show-playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --show-playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
-    --show-playlist-dialog-close-color: #212529;
-    --show-playlist-dialog-close-hover-color: red;
-    --show-playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-    --show-playlist-dialog-title-color: #212529;
-    --show-playlist-dialog-body-font-color: #212529;
-    --show-playlist-tag-dialog-bg-color: white;
-    --show-playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --show-playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
-    --show-playlist-tag-dialog-close-color: #212529;
-    --show-playlist-tag-dialog-close-hover-color: red;
-    --show-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-    --show-playlist-tag-dialog-title-color: #212529;
-    --show-playlist-tag-dialog-body-font-color: #212529;
-    --search-playlist-dialog-bg-color: white;
-    --search-playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --search-playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
-    --search-playlist-dialog-close-color: #212529;
-    --search-playlist-dialog-close-hover-color: red;
-    --search-playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-    --search-playlist-dialog-title-color: #212529;
-    --search-playlist-dialog-body-font-color: #212529;
-    --search-playlist-tag-dialog-bg-color: white;
-    --search-playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    --search-playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
-    --search-playlist-tag-dialog-close-color: #212529;
-    --search-playlist-tag-dialog-close-hover-color: red;
-    --search-playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
-    --search-playlist-tag-dialog-title-color: #212529;
-    --search-playlist-tag-dialog-body-font-color: #212529;
-    
+    --playlist-dialog-bg-color: white;
+    --playlist-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --playlist-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --playlist-dialog-close-color: #212529;
+    --playlist-dialog-close-hover-color: red;
+    --playlist-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --playlist-dialog-title-color: #212529;
+    --playlist-dialog-body-font-color: #212529;
+    --playlist-tag-dialog-bg-color: white;
+    --playlist-tag-dialog-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --playlist-tag-dialog-modal-mask-bg-color: rgba(0, 0, 0, 0.5);
+    --playlist-tag-dialog-close-color: #212529;
+    --playlist-tag-dialog-close-hover-color: red;
+    --playlist-tag-dialog-close-btn-hover-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.1);
+    --playlist-tag-dialog-title-color: #212529;
+    --playlist-tag-dialog-body-font-color: #212529;
 
 
     --main-scrollbal-track-bg-color: transparent;
@@ -192,10 +175,4 @@
     --showPlayList-switchBtn-active-color: white;
     --showPlayList-switchBtn-hover-color: #444;
     --showPlayList-switchBtn-disabled-color: gray;
-    --searchPlayList-switchBtn-bg-color: #444;
-    --searchPlayList-switchBtn-active-bg-color: #000;
-    --searchPlayList-switchBtn-color: white;
-    --searchPlayList-switchBtn-active-color: white;
-    --searchPlayList-switchBtn-hover-color: #444;
-    --searchPlayList-switchBtn-disabled-color: gray;
 }

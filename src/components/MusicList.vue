@@ -53,7 +53,9 @@ import { useLocalStore } from '../store/localStore';
 import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
 import useThrottle from '../hooks/useThrottle'
-import { nextTick, ref } from 'vue'
+import { nextTick, ref, inject } from 'vue'
+const message = inject('message')
+const playlistDialog = inject('playlistDialog')
 const localStore = useLocalStore();
 const userStore = useUserStore()
 const { musicList, currentIndex } = storeToRefs(localStore);
@@ -68,23 +70,15 @@ const handleSelectClick = (dom,menuItem) => {
     if (menuItem.label === '下一首播放') {
         localStore.nextMusic(track)                
     } else if (menuItem.label === '添加到歌单') {
-        if (!isLogin.value) {
-            console.log('请先登录');
-            return;
-        }
+        playlistDialog.value.openDialog()
+        playlistDialog.value.setTrackSelected(track)
         console.log('添加到歌单')
     } else if (menuItem.label === '下载') {
         console.log('下载')
     } else if (menuItem.label === '删除') {
-        if (!isLogin.value) {
-            console.log('请先登录');
-            return;
-        }
-        if (userInfo.value.userId !== albumDetail.value.userId) {
-            console.log('不可删除别人歌单里的歌曲');
-            return;
-        }
         console.log('删除')
+        localStore.removeMusicFromList(track)
+        message.value.addMessage({text: '删除成功', duration: 2000, type: 'success'})
     }
 }
 const setCurrentIndex = (index) => {
