@@ -129,10 +129,12 @@ const markContent = `You can contact me by:`
     /* background-color: skyblue; */
     /* width: 240px; */
     width: 32vmin;
-    margin: 8px;
+    padding: 8px;
     display: flex;
     flex-direction: column;
     align-items: center;
+    position: sticky;
+    top: 0;
 }
 .welcome-warp {
     width: 100%;

@@ -85,23 +85,23 @@
                   </div>
                   <div class="left"></div>
                   <div class="center">
-                    <div class="player-mode">
-                      <i v-show="loop === 0" @click="changePlayerMode" class="iconfont icon-bofang-xunhuanbofang"></i>
-                      <i v-show="loop === 1" @click="changePlayerMode" class="iconfont icon-mayi-shunxubofang"></i>
-                      <i v-show="loop === 2" @click="changePlayerMode" class="iconfont icon-suijibofang"></i>
+                    <div class="player-mode" @click="changePlayerMode">
+                      <i v-show="loop === 0" class="iconfont icon-bofang-xunhuanbofang"></i>
+                      <i v-show="loop === 1" class="iconfont icon-mayi-shunxubofang"></i>
+                      <i v-show="loop === 2" class="iconfont icon-suijibofang"></i>
                     </div>
-                    <button @click="localStore.switchMusic(-1)"><i class="iconfont icon-shangyishou"></i></button>
+                    <button @click="musicSwitch(-1)"><i class="iconfont icon-shangyishou"></i></button>
                     <button v-show="!isPlaying" @click="musicOn_off"><i class="iconfont icon-bofang"></i></button>
                     <button v-show="isPlaying" @click="musicOn_off"><i class="iconfont icon-zanting"></i></button>
-                    <button @click="localStore.switchMusic(1)"><i class="iconfont icon-xiayishou"></i></button>                                
+                    <button @click="musicSwitch(1)"><i class="iconfont icon-xiayishou"></i></button>                                
                     <div v-show="true" class="favorite"><i class="iconfont icon-xiai"></i></div>
                     <div v-show="false" class="favorite"><i class="iconfont icon-xiaisel"></i></div>
                   </div>
                   <div class="right">
                     <div class="handle-volume-warp">
-                      <div  class="player-volume">
-                        <i v-show="isMuted" @click="hanleMute" class="iconfont icon-jingyin"></i>
-                        <i v-show="!isMuted" @click="hanleMute" class="iconfont icon-laba"></i>
+                      <div  class="player-volume" @click="hanleMute">
+                        <i v-show="isMuted" class="iconfont icon-jingyin"></i>
+                        <i v-show="!isMuted" class="iconfont icon-laba"></i>
                       </div>
                       <Slider v-model:progress="volume"
                           @handleProgress="handleVolume"
@@ -184,19 +184,19 @@ const handleProgress = (e) => {
 }
 // 音乐开关
 const musicOn_off = () => {    
-
-  // 确保音乐列表不为空，避免除以零的错误
-  if (musicList.value.length === 0) {
-      message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 3000, type: "error" });  
-      return;
+  const isPlay = localStore.togglePlay()
+  if(!isPlay) {
+    message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 2000, type: 'error' });  
+    return;
+  }  
+}
+// 音乐上一首/下一首
+const musicSwitch = (step) => {
+  const isSwitch = localStore.switchMusic(step)
+  if(!isSwitch) {
+    message.value.addMessage({ text: "音乐列表为空，无法切换音乐", duration: 2000, type: 'error' });  
+    return;
   }
-
-  if(localPlayer.value.paused){
-      localPlayer.value.play()
-  }else{
-      localPlayer.value.pause()
-  }
-  isPlaying.value = !isPlaying.value
 }
 // 音量调节
 const handleVolume = () => {
@@ -215,10 +215,8 @@ const hanleMute = () => {
 }
 // 改变播放器模式
 const changePlayerMode = () => {
-    const modes = ['单曲循环', '顺序播放', '随机播放'];
-    loop.value = (loop.value + 1) % modes.length; // 计算下一个播放模式
-    const msg = `已切换为${modes[loop.value]}`;
-    message.value.addMessage({ text: msg, duration: 3000, type: "info" });  
+  const msg = localStore.toggleLoop();
+  message.value.addMessage({ text: msg, duration: 3000, type: 'info' });    
 }
 // 处理窗口大小变化
 const handleResize = (e) => {
@@ -647,9 +645,8 @@ onBeforeUnmount(() => {
   width: 90%;
   height: 100%;
   margin: 0 auto;
-  border-top-left-radius: var(--border-radius-light);
-  border-bottom-left-radius: var(--border-radius-light);
-  background-color: #e6e6e65e;
+  border-radius: var(--border-radius-light);
+  background-color: #e6e6e6a8;
 }
 
 

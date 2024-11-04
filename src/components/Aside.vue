@@ -27,7 +27,7 @@
                     <li @click="router.push('/localPlayList')" :class="{'menu2-item active':route.name==='MyMusicList','menu2-item':route.name!=='MyMusicList'}">
                         <a><i class="iconfont icon-20gl-videoAlbum"></i><span>我的歌单</span></a>
                     </li>
-                    <li class="menu2-item" @click="showDialog=true">
+                    <li class="menu2-item" @click="createPlaylist">
                         <a><i class="iconfont icon-plus"></i><span>创建歌单</span></a>
                     </li>
                 </ul>
@@ -50,73 +50,16 @@
             </li>
         </ul>        
     </aside>
-    <Dialog v-model="showDialog" id="create-playlist-dialog">
-        <template #title>创建歌单</template>
-        <template #content>
-            <div class="create-form-warp">
-                <form @submit.prevent="createPlaylist" class="create-form">
-                    <div class="form-group-name">
-                        <label for="create-playlist-name">歌单名称:</label>
-                        <input type="text" id="create-playlist-name" placeholder="请输入歌单名称" required>
-                    </div>
-                    <div class="form-group-img">
-                        <label for="create-playlist-img">封面图片:</label>
-                        <input type="file" id="create-playlist-img" accept="image/*">
-                    </div>
-                    <div class="form-group-tags">
-                        <label for="create-playlist-tags">标签:</label>
-                        <select name="tags" id="create-playlist-tags" @change="handleSelectTag">
-                            <option value="" disabled selected>请选择</option>
-                            <option v-for="(tag, index) in localTags" :key="index" :value="tag" >{{ tag }}</option>                            
-                        </select>
-                    </div>                    
-                    <ul class="form-group-show-tags">
-                        <li class="tagSelected" v-for="(tag, index) in tagsSelected" :key="index">
-                            <span>{{ tag }}</span>
-                            <i class="iconfont icon-close" @click="tagsSelected.splice(index, 1)"></i>
-                        </li>
-                        <li class="tagSelected plus" @click="showTagDialog=true">
-                            <i class="iconfont icon-plus"></i>
-                        </li>
-                    </ul>
-                    <Dialog v-model="showTagDialog" type="modal" id="create-playlist-tag-dialog">
-                        <template #title>创建标签</template>
-                        <template #content>
-                            <form @submit.prevent="createTag" class="form-group-tagDiv">
-                                <label for="create-playlist-tagDiv">自定义标签:</label>
-                                <input type="text" id="create-playlist-tagDiv" placeholder="回车创建标签" required>
-                            </form>
-                        </template>
-                    </Dialog>
-                    <div class="form-group-desc">
-                        <label for="create-playlist-desc">描述:</label>
-                        <textarea id="create-playlist-desc" placeholder="请输入歌单描述"></textarea>
-                    </div>
-                    <div class="form-group-btn">
-                        <button type="submit">创建</button>
-                        <button type="button" @click="showDialog=false">取消</button>
-                    </div>
-                </form>
-            </div>
-        </template>
-    </Dialog>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { inject, ref } from 'vue';
 import Button from './utils/Button.vue';
-import Dialog from './utils/Dialog.vue';
 import { useRoute,useRouter } from 'vue-router';
-import { useLocalStore } from '../store/localStore';
-import { storeToRefs } from 'pinia';
-const localStore = useLocalStore()
-const { localTags } = storeToRefs(localStore)
-const tagsSelected = ref([])
 const menu1Func = ref(null)
 const route = useRoute()
 const router = useRouter()
-const showDialog = ref(false)
-const showTagDialog = ref(false)
+const playlistForm = inject('playlistForm')
 const ButtonConfig = {
     name: 'aside-menu1-func',
     animated: true,
@@ -126,56 +69,8 @@ const ButtonConfig = {
     animated: true,
     borderRadius: getComputedStyle(document.documentElement).getPropertyValue('--border-radius-light'),    
 }
-
-// 创建新标签
-const createTag = (e) => {
-    const tag = e.target[0].value.trim()
-    if (!tag) {
-        return;
-    }
-    e.target[0].value = ''
-    showTagDialog.value = false
-    tagsSelected.value.push(tag)
-    localTags.value.push(tag)
-}
-
-// 选择标签
-const handleSelectTag = (e) => {
-    const tag = e.target.value
-    const tags = e.target.parentNode.children[1].children
-    if (tagsSelected.value.includes(tag)) {
-        console.log('已选择,不可以重复选择');        
-    } else {
-        tagsSelected.value.push(tag)        
-    }
-    for (let i = 0; i < tags.length; i++){
-        const item = tags[i];
-        if (i === 0) {
-            item.selected = true
-        }else{
-            item.selected = false
-        }
-    }
-}
-
-// 创建歌单
 const createPlaylist = () => {
-    const name = document.getElementById('create-playlist-name').value.trim()
-    const description = document.getElementById('create-playlist-desc').value.trim()
-    const tags = tagsSelected.value
-    if (!name) {
-        alert('歌单名称不能为空')
-        return;
-    }    
-    
-    localStore.createLocalPlaylist({ name, description, tags })    
-    showDialog.value = false
-    tagsSelected.value = []
-    // 清空表单数据
-    document.getElementById('create-playlist-name').value = ''
-    document.getElementById('create-playlist-desc').value = ''
-    // 使select标签选中状态恢复
-    document.getElementById('create-playlist-tags').selectedIndex = 0
+    playlistForm.value.openDialog()
 }
 </script>
 
@@ -294,130 +189,6 @@ aside {
 }
 
 
-
-.create-form-warp {
-    width: 100%;
-    height: 100%;
-    
-   
-}
-.create-form {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    height: 100%;
-    padding: 20px;
-    gap: 16px;
-}
-.form-group-name,
-.form-group-img,
-.form-group-tags,
-.form-group-tagDiv,
-.form-group-show-tags,
-.form-group-desc,
-.form-group-btn {
-    width: 360px;
-    display: flex;
-    gap: 16px;
-    align-items: center;
-    padding: 8px;
-}
-.form-group-show-tags {
-    flex-wrap: wrap;
-}
-.form-group-desc {
-    align-items: flex-start;
-}
-.create-form label {
-    font-size: 14px;
-    font-weight: bold;
-    color: #333;
-}
-.create-form input[type="text"],
-.create-form textarea,
-.form-group-tagDiv input[type="text"] {
-    flex-grow: 1;
-    border-radius: var(--border-radius-light);
-    border: none;
-    outline: none;
-    transition: all 0.3s ease;
-    font-size: 14px;
-    color: #333;
-    text-indent: 4px;
-}
-.create-form textarea {
-    height: 100px;
-    resize: none;
-    padding: 8px;
-    box-shadow: #333 0px 0px 0px 1px;
-}
-.tagSelected {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 4px 8px 4px 16px;
-    height: 24px;
-    border-radius: 24px;
-    background-color: #333;
-    color: #fff;
-    font-size: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.tagSelected.plus {
-    padding: 4px 16px;
-}
-.tagSelected:hover {
-    background-color: palevioletred;
-    color: #fff;
-}
-.form-group-tagDiv {
-    margin-bottom: 24px;
-}
-#create-playlist-tags {
-    /* -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance:none; */
-    width: 96px;
-    padding: 4px 16px;
-    border-radius: 16px;
-    border: none;
-    cursor: pointer;
-    background-color: #333;
-    color: #fff;
-    font-size: 12px;
-    outline: none;
-    transition: all 0.3s ease;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    overflow: hidden;
-}
-#create-playlist-tags:focus-visible {
-    outline: none;
-}
-#create-playlist-tags option {
-    border: none; 
-    outline: none;
-}
-.form-group-btn {
-    justify-content: flex-end;
-}
-.form-group-btn button {
-    /* width: 100%; */
-    padding: 8px 16px;
-    border-radius: 8px;
-    border: none;
-    background-color: #333;
-    color: #fff;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
-.form-group-btn button:hover {
-    background-color: palevioletred;
-    color: #fff;
-}
 
 /* 滚动条默认隐藏 */
 ::-webkit-scrollbar {

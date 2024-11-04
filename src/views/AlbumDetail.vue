@@ -66,6 +66,7 @@
                     <ContextMenu 
                         @select="handleSelectClick"
                         watchClass="playList-tracks-item"
+                        title="操作"
                         :menu="[{
                         label: '下一首播放',
                         icon: 'icon-Playlists-xiayishoubofang',

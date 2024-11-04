@@ -16,10 +16,10 @@
             </div>
             <div class="player-center">
                 <div class="player-btn">
-                    <button @click="localStore.switchMusic(-1)"><i class="iconfont icon-shangyishou"></i></button>
+                    <button @click="musicSwitch(-1)"><i class="iconfont icon-shangyishou"></i></button>
                     <button v-show="!isPlaying" @click="musicOn_off"><i class="iconfont icon-bofang"></i></button>
                     <button v-show="isPlaying" @click="musicOn_off"><i class="iconfont icon-zanting"></i></button>
-                    <button @click="localStore.switchMusic(1)"><i class="iconfont icon-xiayishou"></i></button>
+                    <button @click="musicSwitch(1)"><i class="iconfont icon-xiayishou"></i></button>
                 </div>
                 <div class="player-bar">
                     <span class="play-time">{{ currentTime  }}</span>
@@ -45,13 +45,13 @@
                 </div>
             </div>
             <div class="player-right">
-                <div class="player-mode">
-                    <i v-show="loop === 0" @click="changePlayerMode" class="iconfont icon-bofang-xunhuanbofang"></i>
-                    <i v-show="loop === 1" @click="changePlayerMode" class="iconfont icon-mayi-shunxubofang"></i>
-                    <i v-show="loop === 2" @click="changePlayerMode" class="iconfont icon-suijibofang"></i>
+                <div class="player-mode" @click="changePlayerMode">
+                    <i v-show="loop === 0" class="iconfont icon-bofang-xunhuanbofang"></i>
+                    <i v-show="loop === 1" class="iconfont icon-mayi-shunxubofang"></i>
+                    <i v-show="loop === 2" class="iconfont icon-suijibofang"></i>
                 </div>        
-                <div class="player-list">
-                    <i class="iconfont icon-gequliebiao" @click="handleClickMusicList"></i>
+                <div class="player-list" @click="handleClickMusicList">
+                    <i class="iconfont icon-gequliebiao"></i>
                     <div :class="{
                         'music-list-popup': !isShowMusicListPopup,
                         'music-list-popup show': isShowMusicListPopup
@@ -59,9 +59,9 @@
                         <MusicList></MusicList>
                     </div>
                 </div>
-                <div  class="player-volume">
-                    <i v-show="isMuted" @click="hanleMute" class="iconfont icon-jingyin"></i>
-                    <i v-show="!isMuted" @click="hanleMute" class="iconfont icon-laba"></i>
+                <div  class="player-volume" @click="hanleMute">
+                    <i v-show="isMuted" class="iconfont icon-jingyin"></i>
+                    <i v-show="!isMuted" class="iconfont icon-laba"></i>
                 </div>
                 <div class="handle-volume-warp">
                     <Slider v-model:progress="volume"
@@ -114,20 +114,19 @@ const updateProgress = (e) => {
 }
 // 音乐开关
 const musicOn_off = () => {    
-
-
-    // 确保音乐列表不为空，避免除以零的错误
-    if (musicList.value.length === 0) {
-        message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 3000, type: 'error' });  
+    const isPlay = localStore.togglePlay()
+    if (!isPlay) {
+        message.value.addMessage({ text: "音乐列表为空，无法播放音乐", duration: 2000, type: 'error' });  
+        return;
+    }    
+}
+// 音乐上一首/下一首
+const musicSwitch = (step) => {
+    const isSwitch = localStore.switchMusic(step)
+    if (!isSwitch) {
+        message.value.addMessage({ text: "音乐列表为空，无法切换音乐", duration: 2000, type: 'error' });  
         return;
     }
-
-    if(player.value.paused){
-        player.value.play()
-    }else{
-        player.value.pause()
-    }
-    isPlaying.value = !isPlaying.value
 }
 // 音量调节
 const handleVolume = () => {
@@ -146,10 +145,8 @@ const hanleMute = () => {
 }
 // 改变播放器模式
 const changePlayerMode = () => {
-    const modes = ['单曲循环', '顺序播放', '随机播放'];
-    loop.value = (loop.value + 1) % modes.length; // 计算下一个播放模式
-    const msg = `已切换为${modes[loop.value]}`;
-    message.value.addMessage({ text: msg, duration: 3000, type: 'info' });  
+    const msg = localStore.toggleLoop();
+    message.value.addMessage({ text: msg, duration: 3000, type: 'info' });    
 }
 // 打开音乐列表
 const handleClickMusicList = () => {

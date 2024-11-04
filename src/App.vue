@@ -20,6 +20,7 @@
   </div>  
   <Message ref="message"></Message>
   <PlaylistDialog ref="playlistDialog"></PlaylistDialog>
+  <PlaylistForm ref="playlistForm"></PlaylistForm>
 </template>
 
 <script setup>
@@ -29,13 +30,16 @@ import Aside from './components/Aside.vue';
 import MusicPlayer from './components/MusicPlayer.vue';
 import Message from './components/utils/Message.vue';
 import PlaylistDialog from './components/PlaylistDialog.vue';
+import PlaylistForm from './components/PlaylistForm.vue';
 import { useRoute } from 'vue-router';
 import { computed, provide, ref } from 'vue';
 const route = useRoute();
 const message = ref()
 const playlistDialog = ref()
+const playlistForm = ref()
 provide('message', message)
 provide('playlistDialog', playlistDialog)
+provide('playlistForm', playlistForm)
 </script>
 
 <style scoped>

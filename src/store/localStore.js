@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { setActivePinia, createPinia } from 'pinia';
 import { useUserStore } from "./userStore";
 import { storeToRefs } from 'pinia';
-import { ref, shallowRef, watch } from "vue";
+import { nextTick, ref, shallowRef, watch } from "vue";
 import { getSongUrl, getLyric, defaultSearchKey, getSearchSuggest, getHotSearch, searchSongs} from '@/request/musicApi/songs'
 import { getComments, getFloorComments, operateComment, likeComment } from "@/request/musicApi/comment";
 import useLyricParse from "../hooks/useLyricParse";
@@ -57,9 +57,17 @@ export const useLocalStore = defineStore("local", () => {
         if(list.length === 0) return
         // 这里使用深拷贝，避免操作musicList影响到list的来源
         musicList.value = deepClone(list)
+        const defaultIndex = 0
+        // 列表覆盖时，若当前索引与默认播放索引一致，则更改播放状态
+        if (currentIndex.value === defaultIndex){
+            currentIndex.value = -1
+            nextTick(() => {
+                currentIndex.value = defaultIndex
+            })
+            return
+        }
         // 默认播放第一个歌曲
-        currentIndex.value = 0
-        isPlaying.value = true   
+        currentIndex.value = defaultIndex
     }
 
     // 添加音乐至列表
@@ -127,44 +135,71 @@ export const useLocalStore = defineStore("local", () => {
         } catch (err) {
             console.log('处理歌曲失败', err);
         }
+    }    
+
+    // 音乐播放/暂停
+    const togglePlay = () => {
+
+        // 确保音乐列表不为空，避免除以零的错误
+        if (musicList.value.length === 0) {            
+            return false;
+        }
+
+        // 歌单有音乐，但是当前播放索引为-1，则默认播放第一个歌曲
+        if (currentIndex.value === -1) {
+            currentIndex.value = 0
+            return true;
+        }
+
+        if (isPlaying.value) {
+            isPlaying.value = false;
+        } else {
+            isPlaying.value = true;
+        }
+
+        return true;
     }
 
     // 切换音乐(下一首/上一首)
-    const switchMusic = async (step) => {
-        let msg = "";
+    const switchMusic = (step) => {
         // 确保音乐列表不为空，避免除以零的错误
         if (musicList.value.length === 0) {
             isPlaying.value = false;
-            msg = "音乐列表为空，无法播放音乐"
-            return msg;
+            return false;
+        }
+
+        // 歌单有音乐，但是当前播放索引为-1，则默认播放第一个歌曲
+        if (currentIndex.value === -1) {            
+            currentIndex.value = 0
+            return true;
         }
 
         const oldIndex = currentIndex.value;
         // 更新当前索引
         switch (loop.value) {
             case 0:        
-                localPlayer.value.currentTime = 0; // 重置播放时间
-                localPlayer.value.play()        
+                localPlayer.value.currentTime = 0; // 重置播放时间                
+                isPlaying.value = true   
                 break;
             case 1:       
                 currentIndex.value = (currentIndex.value + step + musicList.value.length) % musicList.value.length; // 顺序播放  
                 if (oldIndex === currentIndex.value) {
                     localPlayer.value.currentTime = 0; // 重置播放时间
-                    localPlayer.value.play()   
+                    isPlaying.value = true   
                 }                                                      
                 break;
             case 2:
                 currentIndex.value = Math.floor(Math.random() * musicList.value.length); // 随机播放   
                 if (oldIndex === currentIndex.value) {
                     localPlayer.value.currentTime = 0; // 重置播放时间
-                    localPlayer.value.play()   
+                    isPlaying.value = true   
                 }             
                 break;
             default:
                 console.error("无效的播放模式。");
-                return;
+                return false;
         }
-         
+        return true;
     }
 
     // 删除音乐
@@ -181,6 +216,14 @@ export const useLocalStore = defineStore("local", () => {
                 currentIndex.value = -1
             }
         }
+    }
+
+    // 切换播放模式
+    const toggleLoop = () => {        
+        const modes = ['单曲循环', '顺序播放', '随机播放'];
+        loop.value = (loop.value + 1) % modes.length; // 计算下一个播放模式   break;  
+        const msg = `已切换为${modes[loop.value]}`;      
+        return msg;
     }
 
 
@@ -534,7 +577,6 @@ export const useLocalStore = defineStore("local", () => {
 
     watch(currentIndex, async (newVal, oldVal) => {
         if(newVal !== -1) {
-            isPlaying.value = true
             const track = musicList.value[newVal]
             if(!track.url) {
                 const url = await getTrackUrl(track.id)
@@ -550,7 +592,8 @@ export const useLocalStore = defineStore("local", () => {
                 sortType: trackSortType.value, 
                 pageSize: 20, 
                 pageNo: 1, 
-            }) 
+            })
+            isPlaying.value = true 
         }
     })
     watch(isPlaying, (newVal) => {
@@ -599,8 +642,10 @@ export const useLocalStore = defineStore("local", () => {
         setMusicList, 
         addMusicToList,
         nextMusic,
+        togglePlay,
         switchMusic,
         removeMusicFromList,
+        toggleLoop,
         getCommentsData,
         getMoreComments,
         getFloorCommentsData,

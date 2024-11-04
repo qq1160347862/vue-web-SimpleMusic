@@ -6,6 +6,7 @@
         <ContextMenu 
             @select="handleSelectClick"
             watchClass="music-item"
+            title="单曲"
             :menu="[{
             label: '下一首播放',
             icon: 'icon-Playlists-xiayishoubofang',
@@ -107,6 +108,7 @@ const setCurrentIndex = (index) => {
     width: 100%;
     overflow-y: scroll;
     height: 100%;
+    border-radius: var(--border-radius-light);
 }
 
 .music-list {
@@ -118,7 +120,6 @@ const setCurrentIndex = (index) => {
 .music-list .music-item {
     height: 48px;
     width: 100%;
-    border-radius: var(--border-radius-light);
     display: flex;
     align-items: center;
     padding-left: 12px;

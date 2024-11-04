@@ -1,6 +1,6 @@
 <template>
     <div class="bg-overlay">
-        <span>在你眼中我是谁~</span>
+        <span>Hello World</span>
         <div class="bg-img"></div>
     </div>
 </template>
@@ -21,7 +21,7 @@
 }
 .bg-overlay span {
     position: absolute;
-    bottom: 10%;
+    bottom: 45%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: -2;
