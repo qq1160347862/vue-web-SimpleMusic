@@ -46,7 +46,7 @@
 import Dialog from './utils/Dialog.vue';
 import SwitchBtn from './utils/SwitchBtn.vue';
 import unloading from '@/assets/images/playList/unloading.png';
-import { watch, ref, onMounted, defineExpose, inject } from 'vue';
+import { watch, ref, onMounted, inject } from 'vue';
 import { useLocalStore } from '../store/localStore';
 import { useUserStore } from '../store/userStore';
 import { storeToRefs } from 'pinia';
@@ -145,9 +145,7 @@ watch(isLogin, async (newVal) => {
         switchOptions(1)
         await userStore.getUserPlayListData();
     }
-})
-
-defineExpose({
+})({
     openDialog,
     setTrackSelected,
 })

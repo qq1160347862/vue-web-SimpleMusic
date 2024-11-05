@@ -34,3 +34,13 @@ export const getHotSearch = async () => {
 export const getSearchSuggest = async (keywords) => {
   return musicApi.get(`/search/suggest?keywords=${keywords}&type=mobile`)
 }; 
+
+// 歌曲识别
+export const getSongRecognition = async (audioFP, duration) => {
+  return musicApi.get(`/audio/match`,{
+    params: {
+      audioFP,
+      duration
+    }
+  })
+}; 
