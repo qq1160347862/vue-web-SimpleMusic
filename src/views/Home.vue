@@ -60,7 +60,12 @@
                     }">                        
                     </div>                    
                 </div> 
-                <div class="test"></div> 
+                <div class="timeline-warp">
+                    <TimeLine 
+                        :scrollDom="$refs.homeContent"
+                        :background="false"
+                        :data="timelineData"/>
+                </div> 
             </div>
             <div class="right-content">
                 <div class="calendar-warp" v-animate="{
@@ -82,12 +87,14 @@
 <script setup>
 import { ref } from "vue";
 import Calendar from "../components/Calendar.vue";
+import TimeLine from "../components/TimeLine.vue";
 import Button from "../components/utils/Button.vue";
 import CursorText from "../components/CursorText.vue";
 import BackTop from "../components/utils/BackTop.vue";
 import calendarBg1 from "@/assets/images/calendar/calendarBg1.jpg";
 import calendarBg2 from "@/assets/images/calendar/calendarBg2.jpg";
 import calendarBg3 from "@/assets/images/calendar/calendarBg3.gif";
+import timelineData from "../assets/js/timeline";
 import { useRoute } from 'vue-router';
 const homeContent = ref(null)
 const imgList = [calendarBg1, calendarBg2, calendarBg3]
@@ -197,7 +204,8 @@ const markContent = `You can contact me by:`
     border-radius: var(--border-radius-light);
     box-shadow: 0 0 10px rgba(0,0,0,0.1);    
 }
-.test {
+.timeline-warp {
+    margin-top: 48px;
     width: 100%;
     height: 1200px;
 }

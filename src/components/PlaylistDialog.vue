@@ -145,7 +145,8 @@ watch(isLogin, async (newVal) => {
         switchOptions(1)
         await userStore.getUserPlayListData();
     }
-})({
+})
+defineExpose({
     openDialog,
     setTrackSelected,
 })
