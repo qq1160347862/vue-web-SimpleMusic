@@ -57,7 +57,9 @@
                         timingFunction: 'ease-in-out',
                         direction: 'alternate-reverse',
                         iterationCount: 'infinite',
-                    }">                        
+                    }">
+                        
+                        <Weather />                        
                     </div>                    
                 </div> 
                 <div class="timeline-warp">
@@ -91,11 +93,11 @@ import TimeLine from "../components/TimeLine.vue";
 import Button from "../components/utils/Button.vue";
 import CursorText from "../components/CursorText.vue";
 import BackTop from "../components/utils/BackTop.vue";
+import Weather from "../components/Weather.vue";
 import calendarBg1 from "@/assets/images/calendar/calendarBg1.jpg";
 import calendarBg2 from "@/assets/images/calendar/calendarBg2.jpg";
 import calendarBg3 from "@/assets/images/calendar/calendarBg3.gif";
 import timelineData from "../assets/js/timeline";
-import { useRoute } from 'vue-router';
 const homeContent = ref(null)
 const imgList = [calendarBg1, calendarBg2, calendarBg3]
 const ButtonConfig = {

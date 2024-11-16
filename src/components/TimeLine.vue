@@ -1,5 +1,5 @@
 <template>
-    <div class="timeline-container">
+    <div class="timeline-container no-select">
         <div class="timeline-panel">
             <div class="mask" v-show="mask"></div>
             <header>
@@ -130,7 +130,7 @@ onUnmounted(() => {
     font-weight: normal;
 }
 .timeline-panel header .subtitle {
-    color: rgba(255, 255, 255, .5);
+    color: rgba(255, 255, 255, .8);
     font-size: 16px;
     letter-spacing: 2px;
     margin: 5px 0 0 0;
@@ -150,7 +150,7 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: 2px;
     height: 100%;
-    background-color: rgba(255, 255, 255, 0.07);
+    background-color: rgba(255, 255, 255, 0.1);
 }
 .line-card {
     padding: 40px 0;
@@ -160,15 +160,15 @@ onUnmounted(() => {
     width: calc(50% - 40px);
     display: flex;
     position: relative;
-    /* transform: translateY(24px); */
-    /* scroll-snap-align: center;
-    scroll-snap-stop: always; */
+    transform: translateY(24px);
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
 }
 .line-card::before {
     content: attr(data-text);
     width: 100%;
     position: absolute;
-    color: rgba(255, 255, 255, .5);
+    color: rgba(255, 255, 255, .8);
     border-left: 2px solid rgba(255, 255, 255, .9);
     top: 70%;
     margin-top: -5px;
@@ -190,7 +190,7 @@ onUnmounted(() => {
     border-left: none;
     border-right: 2px solid rgba(255, 255, 255, .9);
     padding-right: 15px;
-    color: rgba(255, 255, 255, .5);
+    color: rgba(255, 255, 255, .8);
 }
 .line-card .content {
     display: flex;
@@ -204,24 +204,34 @@ onUnmounted(() => {
     font-weight: normal;
     font-size: 32px;
     transition: .4s;
-    padding: 0 10px;
+    padding: 0 12px;
     color: #fff;
+    transform: translateY(0);
 }
 .line-card .desc {
-    font-size: 15px;
-    color: rgba(255, 255, 255, .7);
+    font-size: 16px;
+    line-height: 1.6;
+    margin-top: 8px;
+    padding: 0 12px;
+    letter-spacing: 2px;
+    color: rgba(255, 255, 255, .8);
+    transition: .4s;
+    transform: translateY(0);
 }
 .line-card.active {
     opacity: 1;
-    /* transform: translateY(0); */
     filter: blur(0);
+    transform: translateY(0)
 }
 .line-card.active::before {
-    top: 50%;
+    top: 20%;
     opacity: 1;
 }
 .line-card.active .time {
-    margin: -50px 0 20px 0; 
+    transform: translateY(-25px);
+}
+.line-card.active .desc {
+    transform: translateY(-25px);
 }
 
 

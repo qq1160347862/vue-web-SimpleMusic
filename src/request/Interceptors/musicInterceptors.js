@@ -1,4 +1,4 @@
-import { musicApi } from './api'
+import musicApi from '@/request/music'
 
 musicApi.interceptors.request.use(config => {
   // 在发送请求之前做些什么
