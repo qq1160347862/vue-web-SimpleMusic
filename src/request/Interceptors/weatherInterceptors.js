@@ -10,9 +10,9 @@ geoApi.interceptors.request.use(config => {
 geoApi.interceptors.response.use(response => {
 
     if (response.status !== 200) {
-        return Promise.reject(new Error("获取城市信息失败"));
+        return Promise.reject(new Error("定位信息接口异常"));
     }
-    return response;
+    return response.data;
 }, error => {
 
     return Promise.reject(error);
@@ -29,9 +29,9 @@ weatherApi.interceptors.request.use(config => {
 weatherApi.interceptors.response.use(response => {
 
     if (response.status !== 200) {
-        return Promise.reject(new Error("获取天气信息失败"));
+        return Promise.reject(new Error("天气信息接口异常"));
     }
-    return response;
+    return response.data;
 }, error => {
 
     return Promise.reject(error);

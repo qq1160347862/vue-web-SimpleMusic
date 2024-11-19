@@ -1,5 +1,5 @@
 import axios from "axios";
-const API_KEY = "45bb56c5aaeb4aedaa48d95e41962538";
+const API_KEY = "iuyysuhgn8ytqg560bzfropd";
 const weatherApi = axios.create({
   baseURL: "https://devapi.qweather.com:443/v7",
   timeout: 5000,

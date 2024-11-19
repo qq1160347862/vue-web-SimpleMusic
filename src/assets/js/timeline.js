@@ -4,6 +4,12 @@ const timelineData = {
     subtitle:'记录开发进度',
     cards: [
         {
+            title: '完善天气组件及优化APi接口',
+            img: defaultBg,
+            desc: '完善天气组件,优化API接口。',
+            date: '2024-11-19'            
+        },
+        {
             title: '对接风云天气API',
             img: defaultBg,
             desc: '新增Weather组件,用于获取天气信息;新增风云天气API,并通过拦截器处理状态码',

@@ -8,7 +8,7 @@
                 enterClass: 'show-scrollbar',
                 leaveClass: 'show-scrollbar',
             }">
-            <div class="left-content">
+            <div class="scroll-panel">
                 <div class="welcome-warp no-select">
                     <div class="welcome-content">
                         <p class="welcome-text">Hi!🥳</p>
@@ -58,10 +58,15 @@
                         direction: 'alternate-reverse',
                         iterationCount: 'infinite',
                     }">
-                        
-                        <Weather />                        
+                        123                                                
                     </div>                    
                 </div> 
+                <div class="func-warp">
+                    <div class="weather-warp">
+                        <Weather />
+                    </div>                    
+                    
+                </div>                
                 <div class="timeline-warp">
                     <TimeLine 
                         :scrollDom="$refs.homeContent"
@@ -69,18 +74,16 @@
                         :data="timelineData"/>
                 </div> 
             </div>
-            <div class="right-content">
-                <div class="calendar-warp" v-animate="{
+            <div class="calendar-warp" v-animate="{
                         name: 'moveUpDown',
                         duration: 2,
-                        delay: 0,
+                        delay: 0.5,
                         timingFunction: 'ease-in-out',
                         direction: 'alternate-reverse',
                         iterationCount: 'infinite',
                     }">
-                    <Calendar :size="240" :img-list="imgList" />
-                </div>    
-            </div>
+                <Calendar :size="240" :img-list="imgList" />
+            </div>            
             <BackTop :query="'.home-content'" />
         </div>        
     </div>
@@ -130,20 +133,9 @@ const markContent = `You can contact me by:`
     display: flex;
     justify-content: flex-start;
 }
-.left-content {
+.scroll-panel {
     flex-grow: 1;
     padding: 20px;
-}
-.right-content {
-    /* background-color: skyblue; */
-    /* width: 240px; */
-    width: 32vmin;
-    padding: 8px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: sticky;
-    top: 0;
 }
 .welcome-warp {
     width: 100%;
@@ -204,8 +196,27 @@ const markContent = `You can contact me by:`
     align-items: center;
     justify-content: flex-start;
     border-radius: var(--border-radius-light);
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);    
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);   
+    overflow: hidden; 
 }
+
+.func-warp {
+    margin-top: 48px;
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+
+}
+.weather-warp {
+    width: 300px;
+}
+.calendar-warp {
+    position: sticky;
+    top: 0;
+    padding: 20px;
+}
+
 .timeline-warp {
     margin-top: 48px;
     width: 100%;
